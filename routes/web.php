@@ -349,6 +349,7 @@ Route::get('/confirm_account', 'GetController@confirm_first_admin_account');
 // Route::get('/', 'PagesController@reports');
 
 
+Route::post('/update_user_client_select', 'CompanyController@update_user_client_select')->name('update_user_client_select');
 Route::post('/sync_data_v_two', 'CompanyController@syncdata')->name('sync_data_v_two');
 Route::post('/sync_audit_log', 'SyncController@sync_audit_log')->name('sync_audit_log');
 Route::post('/sync_banks', 'SyncController@sync_banks')->name('sync_banks');

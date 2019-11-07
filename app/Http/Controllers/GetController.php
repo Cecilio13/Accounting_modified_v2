@@ -34,12 +34,16 @@ class GetController extends Controller
 {
     public function __construct()
     {
-        // $client=Clients::first();
-        // $dbName='accounting_modified_'.$client->clnt_db_name;
-            
-        // DB::disconnect('mysql');//here connection name, I used mysql for example
-        // Config::set('database.connections.mysql.database', $dbName);//new database name, you want to connect to.
-
+        $this->middleware(function ($request, $next) {
+            $db_name="accounting_modified";
+            if(Auth::user()->clnt_db_id!=""){
+                $client= Clients::find(Auth::user()->clnt_db_id);
+                $db_name="accounting_modified_".$client->clnt_db_name;
+            }  
+            DB::disconnect('mysql');//here connection name, I used mysql for example
+            Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+            return $next($request);
+        });
     }
     public function get_customer_info(Request $request){
         $customers=Customers::find($request->id);
@@ -125,7 +129,7 @@ class GetController extends Controller
                 ->join('chart_of_accounts','chart_of_accounts.id','=','et_account_details.et_ad_product')
                 ->get();
         foreach($expense_transactions as $et){
-            $txt = $et->coa_name." , ".number_format($et->et_ad_total,2)."\n";
+            $txt = $et->tin_no." , ".($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name )." , ".$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country." , ".$et->coa_name." , ".number_format($et->et_ad_total,2)."\n";
             fwrite($myfile, $txt);
         }
         

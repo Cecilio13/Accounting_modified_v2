@@ -113,71 +113,7 @@ document.getElementById('piechart_receivable').style.display="none";
                 </div>
             </div>
         </div>
-        @if (count($UserAccessList)>0)
-            @if ($UserAccessList[0]->user_approval=="1")
-            <script>
-                    function add_client_button(){
-                        swal({
-                        text: 'Enter Client Name',
-                        content: "input",
-                        button: {
-                            text: "Add Client",
-                            closeModal: false,
-                        },
-                        })
-                        .then(name => {
-                            if (!name) throw null;
-                            
-                            $.ajax({
-                                method: "POST",
-                                headers: {
-                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                },
-                                url: "create_database",
-                                data: {name:name,_token: '{{csrf_token()}}'},
-                                success: function (data) {
-                                    //alert(data);
-                                    if(data=="Duplicate"){
-                                        swal({title: "Error!", text:"Duplicate Client Name", type: 
-                                        "error"}).then(function(){
-                                        location.reload();                                    
-                                        });
-                                    }else if(data=="1"){
-                                        swal({title: "Done!", text:"Successfully Added Client", type: 
-                                        "success"}).then(function(){
-                                        location.reload();                                    
-                                        });
-                                    }else{
-                                        swal({title: "Error!", text:"Failed to Add Client", type: 
-                                        "error"}).then(function(){
-                                        location.reload();                                    
-                                        });  
-                                    }
-                                    
-                                    
-                                },
-                                error: function (data) {
-                                    alert(data.responseText);
-                                }
-                            });
-                        })
-                        .catch(err => {
-                            if (err) {
-                                swal("Error!", "Please Try Again Later", "error");
-                            } else {
-                                swal.stopLoading();
-                                swal.close();
-                            }
-                        });
-                    }
-                </script>
-                <div class="col-sm-8">
-                    <div class="float-right">
-                        <button type="button" onclick="add_client_button()">Add New Client</button>
-                    </div>
-                </div> 
-            @endif
-        @endif
+       
         <!-- <div class="col-sm-8">
             <div class="page-header float-right">
                 <div class="page-title">

@@ -10,7 +10,7 @@ use Auth;
 use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-
+use App\User;
 class LoginController extends Controller
 {
     /*
@@ -68,5 +68,13 @@ class LoginController extends Controller
             'last_login_ip' => $request->ip()
         ]);
         
+    }
+    public function logout(\Illuminate\Http\Request $request) {
+        $data=User::find(Auth::user()->id);
+        $data->clnt_db_id="";
+        $data->save();
+        Auth::logout();
+      
+        return redirect('/login');
     }
 }

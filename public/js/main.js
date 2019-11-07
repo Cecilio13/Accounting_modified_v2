@@ -127,6 +127,11 @@ jQuery(document).ready(function($) {
 		console.log(document.getElementById('creditnotecreditaccountbutton').getAttribute('data-value'));
 		//refreshpicjer();
 	})
+	$('#change_client_select_button').on('click',function(event){
+		$('#change_client_select_id').selectpicker('refresh');
+		
+	})
+	
 	$('#bill_credit_account_account_button').on('click',function(event){
 		
 		$('#bill_account_credit_account').selectpicker('refresh');
