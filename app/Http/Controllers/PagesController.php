@@ -45,7 +45,9 @@ class PagesController extends Controller
         
 
     }
-    
+    public function choose_client(Request $request){
+        return view('select_client_page');
+    }
     public function index(\Illuminate\Http\Request $request){
         
         // $query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME =  ?";
@@ -211,14 +213,22 @@ class PagesController extends Controller
         // }
     }
     public function dashboard(Request $request){
-        
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         $useracess=UserAccess::find("q");
         if(empty($useracess)){
             $useracess= new UserAccess;
             $useracess->user_id="q";
             $useracess->save();
         }
-        
+        $db_name="accounting_modified";
+        if(Auth::user()->clnt_db_id!=""){
+            $client= Clients::find(Auth::user()->clnt_db_id);
+            $db_name="accounting_modified_".$client->clnt_db_name;
+        }  
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         
         //return Auth::user()->position;
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();

@@ -78,6 +78,9 @@ class AppServiceProvider extends ServiceProvider
                 $data->save();
             }
         }
+        $db_name="accounting_modified";
+            DB::disconnect('mysql');//here connection name, I used mysql for example
+            Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         $client=Clients::first();
         view()->share('ClientList', Clients::where([
             ['clnt_status','=','1']

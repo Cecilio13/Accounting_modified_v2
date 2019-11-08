@@ -137,8 +137,12 @@ class GetController extends Controller
         return response()->download('extra/export_report/dat_file.dat','report.dat');
     }
     public function create_database(Request $request){
-        $unique_db_id=md5(uniqid($request->name, true));
-        
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+        $unique_db_id=uniqid($request->name, true);
+        $res = preg_replace("/[^a-zA-Z0-9]/", "", $request->name);
+        $final_name=$res.substr(uniqid('', true), -5);
         //$this->create_database();
         //create database
         //CREATE DATABASE database_name
@@ -150,12 +154,12 @@ class GetController extends Controller
         }else{
             $data= new Clients;
             $data->clnt_name=$request->name;
-            $data->clnt_db_name=$unique_db_id;
+            $data->clnt_db_name=$final_name;
             $data->clnt_status="1";
             if($data->save()){
                 DB::connection('mysql')
                 ->statement(
-                    'CREATE DATABASE accounting_modified_'.$unique_db_id
+                    'CREATE DATABASE accounting_modified_'.$final_name
                 );
                 //show database table lists
                 //show tables from accounting;
@@ -165,7 +169,7 @@ class GetController extends Controller
                 {
                     DB::connection('mysql')
                     ->statement(
-                        'CREATE TABLE  accounting_modified_'.$unique_db_id.'.'.$table->Tables_in_accounting_modified.' LIKE accounting_modified.'.$table->Tables_in_accounting_modified
+                        'CREATE TABLE  accounting_modified_'.$final_name.'.'.$table->Tables_in_accounting_modified.' LIKE accounting_modified.'.$table->Tables_in_accounting_modified
                     );
                     //$eee.=$table->Tables_in_accounting_modified."\n";
                 }
@@ -182,6 +186,9 @@ class GetController extends Controller
 
     }
     public function confirm_first_admin_account(Request $request){
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         $None="55";
         $email=$request->email;
         $users=User::where([

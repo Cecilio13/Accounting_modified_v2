@@ -14,6 +14,7 @@ use \setasign\Fpdi\Fpdi;
 Route::group(['middleware'=>['auth']], function() {
     
     
+    Route::get('/choose_client', 'PagesController@choose_client');
     Route::post('/create_database', 'GetController@create_database');
     Route::get('/export_dat_file', 'GetController@export_dat_file');
     Route::get('/export_profitandloss', 'ChartofAccountsController@export_profitandloss');

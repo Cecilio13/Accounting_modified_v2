@@ -2025,8 +2025,17 @@ class CustomersController extends Controller
         return \DataTables::of($sales_transaction)
         
         ->addColumn('action', function($sales_transaction){
+            $db_name="accounting_modified";
+            DB::disconnect('mysql');//here connection name, I used mysql for example
+            Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
             $usersrestriction=UserAccess::where('user_id',Auth::user()->id)->get();
-            
+            $db_name="accounting_modified";
+            if(Auth::user()->clnt_db_id!=""){
+                $client= Clients::find(Auth::user()->clnt_db_id);
+                $db_name="accounting_modified_".$client->clnt_db_name;
+            }  
+            DB::disconnect('mysql');//here connection name, I used mysql for example
+            Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
             if($sales_transaction->st_status == "Open" && $sales_transaction->st_type == "Invoice" || $sales_transaction->st_status == "Partially paid" && $sales_transaction->st_type == "Invoice"){
                 if($sales_transaction->remark==""){
                     $withpayment=0;

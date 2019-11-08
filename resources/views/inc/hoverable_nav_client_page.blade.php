@@ -35,8 +35,8 @@
 .hooo:hover .hoo_btn {background-color: #1d648a;}
 .hoo_btn:hover{background-color: #1d648a;}
 </style>
-<div style="width:100%;display:none;background-color:#2683b5;vertical-align:middle;" id="hoverrable_navbar" onmouseover="this.style.display='table-caption';">
-    <div>
+<div style="width:100%;display:table-caption;background-color:#2683b5;vertical-align:middle;" id="hoverrable_navbar" onmouseover="this.style.display='table-caption';">
+    <div >
         <div class="hooo">
           <button class="btn btn-link btn-sm hoo_btn" style="height:max-content;color:white;">Client</button>
           <div class="hooo-content">
@@ -106,8 +106,12 @@
           </div>
         </div>
         <button class="btn btn-link btn-sm hoo_btn" style="height:max-content;color:white;display:none;">Option</button>
+        <button class="btn btn-link btn-sm hoo_btn" onclick="document.getElementById('logout-form').submit();" style="float:right;height:max-content;color:white;">Logout</button>
     </div>
 </div>
+<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    {{ csrf_field() }}
+</form>
 <div class="modal fade" id="changecurrentclientmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

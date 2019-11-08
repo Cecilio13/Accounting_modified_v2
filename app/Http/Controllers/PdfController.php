@@ -121,6 +121,9 @@ class PdfController extends Controller
             $Cost_Center=1;
             $Settings=1;
         }
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         $UserAccess=new UserAccess;
         $UserAccess->user_id=$id;
         $UserAccess->approvals=$Approvals;
@@ -150,6 +153,9 @@ class PdfController extends Controller
 
     }
     public function deny_user(Request $request){
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         $id=$request->id;
         User::where([
             ['id','=',$id]
@@ -195,7 +201,10 @@ class PdfController extends Controller
 		$A_sales=0;
 		$A_expense=0;
 		$A_boq=0;
-		$A_UAA=0;
+        $A_UAA=0;
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         if($request->has('accesscostcenter')){
             $accesscostcenter=$request->accesscostcenter;
             UserCostCenterAccess::where([
