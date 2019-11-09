@@ -2663,3 +2663,6 @@ table.dataTable{
 .bordered-top-table{
   /* border-top:1px solid #262626 !important; */
 }
+.hidden{
+  display:none !important;
+}

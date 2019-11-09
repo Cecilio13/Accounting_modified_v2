@@ -22,6 +22,7 @@ use App\Supplier;
 use App\Budgets;
 use App\BudgetsEdit;
 use App\StInvoice;
+use App\UserClientAccess;
 use Illuminate\Support\Facades\Storage;
 use PHPExcel; 
 use PHPExcel_IOFactory;

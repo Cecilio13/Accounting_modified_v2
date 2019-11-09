@@ -17,6 +17,7 @@ use App\BankEdits;
 use Auth;
 use App\Budgets;
 use App\User;
+use App\UserClientAccess;
 class CompanyController extends Controller
 {
     public function __construct()

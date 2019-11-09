@@ -26,6 +26,7 @@ use App\DepositRecord;
 use App\Bank;
 use App\UserAccess;
 use App\Clients;
+use App\UserClientAccess;
 use Illuminate\Support\Facades\Config;
 
 class PagesController extends Controller
@@ -46,7 +47,9 @@ class PagesController extends Controller
 
     }
     public function choose_client(Request $request){
+        
         return view('select_client_page');
+        
     }
     public function index(\Illuminate\Http\Request $request){
         
@@ -741,10 +744,15 @@ class PagesController extends Controller
         $favorite_report = DB::table('favorite_report')->get();
         $numbering = Numbering::first();         $st_invoice = DB::table('st_invoice')->get();
         $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+        $cost_center_list_grouped= CostCenter::where('cc_status','1')->groupBy('cc_type')->orderBy('cc_type', 'asc')->get();
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
         $all_system_users=DB::table('users')->get();
         $all_system_users_access=DB::table('users_access_restrictions')->get();
         $all_system_users_cost_center_access=DB::table('user_cost_center_access')->get();
-        $cost_center_list_grouped= CostCenter::where('cc_status','1')->groupBy('cc_type')->orderBy('cc_type', 'asc')->get();
+
+        
         return view('pages.pending_users', compact('cost_center_list_grouped','all_system_users_cost_center_access','all_system_users_access','all_system_users','numbering','st_invoice','cost_center_list','favorite_report','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','Report','customers', 'products_and_services','JournalEntry','jounalcount','VoucherCount'));
        
     }

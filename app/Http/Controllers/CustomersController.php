@@ -34,6 +34,7 @@ use App\Advance;
 use App\Numbering;
 use App\CostCenter;
 use App\ProductAndServicesEdit;
+use App\UserClientAccess;
 class CustomersController extends Controller
 {
     public function __construct()

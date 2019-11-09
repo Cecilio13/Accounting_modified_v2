@@ -99,7 +99,9 @@
                             });
                         }
                     </script>
+                    
                     <a href="#" onclick="add_client_button()">New Client</a>
+                    <a href="#" data-toggle="modal" data-target="#change_users_client_access" class="">Change User's Client Access</a>
                 @endif
                 @endif
             <a href="#" data-toggle="modal" data-target="#changecurrentclientmodal">Change Current Client</a>
@@ -112,6 +114,109 @@
 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
     {{ csrf_field() }}
 </form>
+<div class="modal fade" id="change_users_client_access" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Change User's Client Access</h5>
+        </div>
+        <script>
+            $(document).ready(function(){
+                $("#change_user_client_access").submit(function(e) {
+                    $.ajax({
+                        method: "POST",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        url: "update_users_client_access",
+                        data: $('#change_user_client_access').serialize(),
+                        success: function (data) {
+                            swal({title: "Done!", text: "Successfully Save Changes.", type: 
+                                "success"}).then(function(){ 
+                                location.reload();
+                            });
+                        },
+                        error: function (data) {
+                            swal("Error!", "Failed to Save Changes", "error");
+                        }
+                    }); 
+                    e.preventDefault();
+                    
+                });
+            })
+        </script>
+        <form id="change_user_client_access">
+            {{ csrf_field() }}
+        <div class="modal-body">
+            <script>
+                function getUsersClientAccess(){
+                    var selected=document.getElementById('UserSelectList').value;
+                    if(selected!=''){
+                        $.ajax({
+                            type: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            url: 'get_user_client_access',                
+                            data: {user_id:selected,_token: '{{csrf_token()}}'},
+                            success: function(data) {
+                                var lenth=data.length;
+                                console.log(data);
+                                console.log(lenth);
+                                for(var c=lenth-1;c>=0;c--){
+                                    console.log(c+" index"+' client_'+data[c]['client_id']);
+                                    var el=document.getElementById('client_'+data[c]['client_id']);
+                                    if(el){
+                                        el.checked="true";
+                                        console.log(data[c]['client_id']+" checked");
+                                    }
+                                }
+                            }
+                        }) 
+                    }
+                }
+            </script>
+            <div class="row">
+                <div class="col-md-4">
+                    <select class="w-100 form-control selectpicker" data-live-search="true" onchange="getUsersClientAccess()" id="UserSelectList" name="UserSelectList" required>
+                    <option value="">--Select User--</option>
+                    @foreach ($all_system_users as $data)
+                        <option value="{{$data->id}}">{{$data->name}}</option>
+                    @endforeach
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <h5 style="margin-bottom:10px;"></h5>
+                    @foreach ($ClientList as $clnt)
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="{{$clnt->clnt_id}}" id="client_{{$clnt->clnt_id}}" name="accessclient[]">
+                            <label class="form-check-label" for="client_{{$clnt->clnt_id}}" style="font-size:initial;">
+                                {{$clnt->clnt_name}}
+                            </label>
+                        </div>
+                    @endforeach
+                    
+                </div>
+                
+
+                {{-- @foreach ($all_system_users as $data)
+                    {{print_r($data)."<br>"}}
+                @endforeach
+                @foreach ($all_user_client_access as $data)
+                    {{print_r($data)."<br>"}}
+                @endforeach --}}
+                
+            </div>
+            
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary rounded" data-dismiss="modal">Close</button>
+            <button class="btn btn-success rounded" type="submit">Save</button>
+        </div>
+        </form>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="changecurrentclientmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -163,7 +268,11 @@
                 <select class="w-100 form-control selectpicker" id="change_client_select_id" data-live-search="true" onchange="confirm_change_client(this)">
                 <option value="">--Select Client--</option>
                 @foreach ($ClientList as $clnt)
-                    <option value="{{$clnt->clnt_id}}" {{!empty($user_position)? ($user_position->clnt_db_id==$clnt->clnt_id? 'Selected' : '') :  ''}}>{{$clnt->clnt_name}}</option>
+                    @foreach ($all_user_client_access as $auca)
+                        @if ($user_position->id==$auca->user_id && $auca->access_status=="1" && $clnt->clnt_id==$auca->client_id)
+                            <option value="{{$clnt->clnt_id}}" {{!empty($user_position)? ($user_position->clnt_db_id==$clnt->clnt_id? 'Selected' : '') :  ''}}>{{$clnt->clnt_name}}</option>
+                        @endif
+                    @endforeach
                 @endforeach
                 </select>
                 

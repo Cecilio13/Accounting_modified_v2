@@ -46,6 +46,7 @@ use App\CostCenter;
 use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\UserClientAccess;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -79,12 +80,16 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         $db_name="accounting_modified";
-            DB::disconnect('mysql');//here connection name, I used mysql for example
-            Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+        $all_system_users=DB::table('users')->get();
+        $all_user_client_access=DB::table('user_client_access')->get();
         $client=Clients::first();
         view()->share('ClientList', Clients::where([
             ['clnt_status','=','1']
         ])->get());
+        view()->share('all_system_users',$all_system_users );
+        view()->share('all_user_client_access',$all_user_client_access );
         view()->composer('*', function($view) use ($client)
         {
             $db_name="accounting_modified";
@@ -101,6 +106,8 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('user_position', Auth::user());
                 $view->with('UserAccessList', UserAccess::where('user_id',Auth::user()->id)->get());
                 $view->with('UserAccessCostCenterList', UserCostCenterAccess::where('use_id',Auth::user()->id)->get());
+                $view->with('UserClientAccessList', UserClientAccess::where('user_id',Auth::user()->id)->get());
+                
                 $view->with('CC_Types_list', CC_Type::orderBy('cc_code', 'asc')->get());
                 // //View::share('user', \Auth::user());
                 if(Auth::user()->clnt_db_id!=""){

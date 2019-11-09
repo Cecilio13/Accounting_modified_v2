@@ -10,6 +10,7 @@ use Auth;
 use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\UserClientAccess;
 class HomeController extends Controller
 {
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use PDF;
+use Auth;
 use App\SalesTransaction;
 use App\StCreditNote;
 use App\UserAccess;
@@ -13,6 +14,7 @@ use App\UserCostCenterAccess;
 use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use App\UserClientAccess;
 class PdfController extends Controller
 {
     public function __construct()

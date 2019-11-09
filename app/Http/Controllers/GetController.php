@@ -30,6 +30,7 @@ use App\DepositRecord;
 use App\Bank;
 use App\UserAccess;
 use App\CC_Type;
+use App\UserClientAccess;
 class GetController extends Controller
 {
     public function __construct()
@@ -135,6 +136,35 @@ class GetController extends Controller
         
         fclose($myfile);
         return response()->download('extra/export_report/dat_file.dat','report.dat');
+    }
+    public function get_user_client_access(Request $request){
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+        $data=UserClientAccess::where([
+            ['user_id','=',$request->user_id],
+            ['access_status','=','1']
+        ])->get();
+        return $data;
+    }
+    public function update_users_client_access(Request $request){
+        $db_name="accounting_modified";
+        DB::disconnect('mysql');//here connection name, I used mysql for example
+        Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+        UserClientAccess::where([
+            ['user_id','=',$request->UserSelectList]
+        ])->delete();
+        if($request->has('accessclient')){
+            $accessclient=$request->accessclient;
+            foreach($accessclient as $data){
+                $clnt=new UserClientAccess;
+                $clnt->user_id=$request->UserSelectList;
+                $clnt->client_id=$data;
+                $clnt->access_status='1';
+                $clnt->save();
+            }
+        }
+        
     }
     public function create_database(Request $request){
         $db_name="accounting_modified";

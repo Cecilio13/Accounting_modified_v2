@@ -14,6 +14,8 @@ use \setasign\Fpdi\Fpdi;
 Route::group(['middleware'=>['auth']], function() {
     
     
+    Route::post('/update_users_client_access', 'GetController@update_users_client_access');
+    Route::post('/get_user_client_access', 'GetController@get_user_client_access');
     Route::get('/choose_client', 'PagesController@choose_client');
     Route::post('/create_database', 'GetController@create_database');
     Route::get('/export_dat_file', 'GetController@export_dat_file');

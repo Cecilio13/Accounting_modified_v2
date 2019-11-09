@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Budgets;
+use App\UserClientAccess;
 class SyncController extends Controller
 {
     public function __construct()

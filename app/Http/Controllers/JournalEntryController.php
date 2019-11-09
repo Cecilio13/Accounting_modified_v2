@@ -12,7 +12,7 @@ use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\CostCenter;
-
+use App\UserClientAccess;
 class JournalEntryController extends Controller
 {
     public function __construct()

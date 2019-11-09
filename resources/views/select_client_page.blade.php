@@ -77,7 +77,20 @@
                 </div>
             </div>
             </div>
-
+            <div class="flip-card " data-toggle="modal" data-target="#change_users_client_access">
+                <div class="flip-card-inner">   
+                    <div class="flip-card-front">
+                    <img src="{{asset('images/users_client_access.png')}}" alt="Avatar" style="width:200px;height;200px;">
+                    </div>
+                    <div class="flip-card-back">
+                    <div>
+                    
+                    <h5 style="font-weight:bold;">Change User's Client Access</h5> 
+                    </div>
+                    
+                    </div>
+                </div>
+            </div>
             <div class="flip-card" data-toggle="modal" data-target="#changecurrentclientmodal">
             <div class="flip-card-inner">   
                 <div class="flip-card-front">
@@ -92,7 +105,7 @@
                 </div>
             </div>
             </div>
-            <div class="flip-card">
+            <div class="flip-card" onclick="document.getElementById('logout-form').submit();">
             <div class="flip-card-inner">   
                 <div class="flip-card-front">
                 <img src="{{asset('images/logout_client.png')}}" alt="Avatar" style="width:200px;height;200px;">

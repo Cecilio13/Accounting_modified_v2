@@ -32,6 +32,7 @@ use App\ETAccountDetailNew;
 use App\Voucher;
 use App\VoucherTransaction;
 use App\VoucherJournalEntry;
+use App\UserClientAccess;
 class SuppliersController extends Controller
 {
     public function __construct()

@@ -36,6 +36,7 @@ use App\Budgets;
 use App\StInvoiceEdit;
 use App\SalesTransactionEdit;
 use App\StCreditNoteEdit;
+use App\UserClientAccess;
 class ReportController extends Controller
 {
     public function __construct()
