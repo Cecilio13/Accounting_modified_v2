@@ -32,12 +32,14 @@ class ChartofAccountsController extends Controller
     {
         $this->middleware(function ($request, $next) {
             $db_name="accounting_modified";
-            if(Auth::user()->clnt_db_id!=""){
-                $client= Clients::find(Auth::user()->clnt_db_id);
-                $db_name="accounting_modified_".$client->clnt_db_name;
-            }    
-            DB::disconnect('mysql');//here connection name, I used mysql for example
-            Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+            if (Auth::check()) {
+                if(Auth::user()->clnt_db_id!=""){
+                    $client= Clients::find(Auth::user()->clnt_db_id);
+                    $db_name="accounting_modified_".$client->clnt_db_name;
+                }
+                DB::disconnect('mysql');//here connection name, I used mysql for example
+                Config::set('database.connections.mysql.database', $db_name);//new database name, you want to connect to.
+            }
             return $next($request);
         });
     }
