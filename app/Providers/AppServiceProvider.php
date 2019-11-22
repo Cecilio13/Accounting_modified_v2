@@ -108,7 +108,7 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('UserAccessCostCenterList', UserCostCenterAccess::where('use_id',Auth::user()->id)->get());
                 $view->with('UserClientAccessList', UserClientAccess::where('user_id',Auth::user()->id)->get());
                 
-                $view->with('CC_Types_list', CC_Type::orderBy('cc_code', 'asc')->get());
+                $view->with('CC_Types_list', CC_Type::orderBy('cc_code', 'asc')->groupBy('cc_type')->get());
                 // //View::share('user', \Auth::user());
                 if(Auth::user()->clnt_db_id!=""){
                     $client= Clients::find(Auth::user()->clnt_db_id);
