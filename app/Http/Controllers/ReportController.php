@@ -9396,8 +9396,15 @@ class ReportController extends Controller
         $FROM=$request->FROM;
         $TO=$request->TO;
         $CostCenterFilter=$request->CostCenterFilter;
-        $FROMpv=strtotime($request->FROM.' -1 year');
-        $TOpv=strtotime($request->TO.' -1 year');
+        $PeriodComparison=$request->PeriodComparison;
+        if($PeriodComparison=="Last Month"){
+            $FROMpv=strtotime($request->FROM.' -1 month');
+            $TOpv=strtotime($request->FROM.' -1 month');
+        }else{
+            $FROMpv=strtotime($request->FROM.' -1 year');
+            $TOpv=strtotime($request->TO.' -1 year');
+        }
+        
         $DateRange="Total";
         $DateRangepy="Total(PY)";
         $filtertemplate=$request->filtertemplate;
@@ -9413,8 +9420,13 @@ class ReportController extends Controller
             $sortsettingjournalpast="WHERE created_at = '' AND";
             $sortsettingjournalpastpv="WHERE created_at = '' AND";
         }else{
-            $FROMpv=strtotime($request->FROM.' -1 year');
-            $TOpv=strtotime($request->TO.' -1 year');
+            if($PeriodComparison=="Last Month"){
+                $FROMpv=strtotime($request->FROM.' -1 month');
+                $TOpv=strtotime($request->FROM.' -1 month');
+            }else{
+                $FROMpv=strtotime($request->FROM.' -1 year');
+                $TOpv=strtotime($request->TO.' -1 year');
+            }
             $FROMpv=date('Y-m-d', $FROMpv);
             $TOpv=date('Y-m-d', $TOpv);
             $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
@@ -9596,7 +9608,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
-                                
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9658,7 +9670,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
-                                
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9720,7 +9732,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
-                                
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9782,7 +9794,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
-                                
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9843,7 +9855,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
-                                
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -9918,8 +9930,13 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
+                        if (strpos($Coa->coa_name, 'Accumulated Depreciation') !== false) {
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                        }else{
+                            $IncomeTotalpv+=$coa_name_totalpv;
+                        }
                         
-                        $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>';
@@ -9976,7 +9993,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -10042,7 +10059,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -10100,7 +10117,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -10140,9 +10157,12 @@ class ReportController extends Controller
                 $RetainedEarningspv=0;
                 $RetainedEarningsSubs=0;
                 $RetainedEarningsSubspv=0;
+                
                 $data=Advance::first();
                 if(!empty($data)){
-                    $RetainedEarnings+=$data->advance_beginning_balance;
+                    $RetainedEarningsSubs+=$data->advance_beginning_balance;
+                    $RetainedEarningsSubspv+=$data->advance_beginning_balance;
+                    
                 }
                 foreach ($COA as $coa){
                     //experimental retained earning
@@ -10379,6 +10399,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_totalpv-=$Coa->coa_balance;
                             $IncomeTotalpv-=$coa_name_totalpv;
                             $tablecontent.=number_format($coa_name_totalpv,2);
                             $tablecontent.='</td>';
@@ -10414,7 +10435,8 @@ class ReportController extends Controller
                                     }
                                 }
                             }
-                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $coa_name_totalpv+=$Coa->coa_balance;
+                            $IncomeTotalpv+=$coa_name_totalpv;
                             $tablecontent.=number_format($coa_name_totalpv,2);
                             $tablecontent.='</td>';
                             $tablecontent.='</tr>';
@@ -10521,6 +10543,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -10582,6 +10605,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -10643,6 +10667,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -10704,6 +10729,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -10764,6 +10790,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -10839,6 +10866,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -10896,6 +10924,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -10961,6 +10990,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -11018,6 +11048,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -11058,6 +11089,7 @@ class ReportController extends Controller
                 $data=Advance::first();
                 if(!empty($data)){
                     $RetainedEarnings+=$data->advance_beginning_balance;
+                    $RetainedEarningspv+=$data->advance_beginning_balance;
                 }
                 foreach ($COA as $coa){
                     //experimental retained earning
@@ -11117,7 +11149,7 @@ class ReportController extends Controller
                 //         }
                 //     }
                 // }
-                $tablecontent.=number_format($CustomerTotal-$CustomerTotal2,2);
+                $tablecontent.=number_format($RetainedEarnings,2);
                 $tablecontent.='</td>';
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
                 $CustomerTotalpv=0;
@@ -11148,7 +11180,7 @@ class ReportController extends Controller
                 //         }
                 //     }
                 // }
-                $tablecontent.=number_format($CustomerTotalpv-$CustomerTotal2pv,2);
+                $tablecontent.=number_format($RetainedEarningspv,2);
                 $RetainedEarnings=$CustomerTotal-$CustomerTotal2;
                 $RetainedEarningspv=$CustomerTotalpv-$CustomerTotal2pv;
                 $tablecontent.='</td>';
@@ -11187,7 +11219,7 @@ class ReportController extends Controller
                             }
                         }
                     }
-                }
+                }   
                 $tablecontent.=number_format($CustomerTotal-$CustomerTotal2,2);
                 $tablecontent.='</td>';
                 $tablecontent.='<td class="dottedborder" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -11260,6 +11292,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_totalpv-=$Coa->coa_balance;
                             $IncomeTotalpv-=$coa_name_totalpv;
                             $tablecontent.=number_format($coa_name_totalpv,2);
                             $tablecontent.='</td>';
@@ -11295,7 +11328,8 @@ class ReportController extends Controller
                                     }
                                 }
                             }
-                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $coa_name_totalpv+=$Coa->coa_balance;
+                            $IncomeTotalpv+=$coa_name_totalpv;
                             $tablecontent.=number_format($coa_name_totalpv,2);
                             $tablecontent.='</td>';
                             $tablecontent.='</tr>';
@@ -11381,6 +11415,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -11442,6 +11477,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -11503,6 +11539,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -11564,6 +11601,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -11624,6 +11662,7 @@ class ReportController extends Controller
                                         }
                                     }
                                 }
+                                $coa_name_totalpv+=$Coa->coa_balance;
                                 $IncomeTotalpv+=$coa_name_totalpv;
                                 $tablecontent.=number_format($coa_name_totalpv,2);
                                 $tablecontent.='</td>';
@@ -11698,7 +11737,13 @@ class ReportController extends Controller
                                 }
                             }
                         }
-                        $IncomeTotalpv+=$coa_name_totalpv;
+                        $coa_name_totalpv+=$Coa->coa_balance;
+                        if (strpos($Coa->coa_name, 'Accumulated Depreciation') !== false) {
+                            $IncomeTotalpv-=$coa_name_totalpv;
+                        }else{
+                            $IncomeTotalpv+=$coa_name_totalpv;
+                        }
+                        
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
                         $tablecontent.='</tr>';
@@ -11755,6 +11800,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -11820,6 +11866,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -11877,6 +11924,7 @@ class ReportController extends Controller
                                 }
                             }
                         }
+                        $coa_name_totalpv+=$Coa->coa_balance;
                         $IncomeTotalpv+=$coa_name_totalpv;
                         $tablecontent.=number_format($coa_name_totalpv,2);
                         $tablecontent.='</td>';
@@ -11918,7 +11966,8 @@ class ReportController extends Controller
                 $RetainedEarningspv=0;
                 $data=Advance::first();
                 if(!empty($data)){
-                    $RetainedEarnings+=$data->advance_beginning_balance;
+                    $RetainedEarningsSubs+=$data->advance_beginning_balance;
+                    $RetainedEarningsSubspv+=$data->advance_beginning_balance;
                 }
                 foreach ($COA as $coa){
                     //experimental retained earning
@@ -12155,6 +12204,7 @@ class ReportController extends Controller
                                     }
                                 }
                             }
+                            $coa_name_totalpv-=$Coa->coa_balance;
                             $IncomeTotalpv-=$coa_name_totalpv;
                             $tablecontent.=number_format($coa_name_totalpv,2);
                             $tablecontent.='</td>';
@@ -12190,7 +12240,8 @@ class ReportController extends Controller
                                     }
                                 }
                             }
-                            $IncomeTotalpv-=$coa_name_totalpv;
+                            $coa_name_totalpv+=$Coa->coa_balance;
+                            $IncomeTotalpv+=$coa_name_totalpv;
                             $tablecontent.=number_format($coa_name_totalpv,2);
                             $tablecontent.='</td>';
                             $tablecontent.='</tr>';
@@ -21070,6 +21121,17 @@ class ReportController extends Controller
                                 foreach ($output as $ST){
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                     $coa_month=0;
+                                    $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                     foreach ($JournalEntry as $JE){
                                         if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21086,6 +21148,7 @@ class ReportController extends Controller
                                 }
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                 $coa_name_total=0;
+                                
                                 foreach ($JournalEntry as $JE){
                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                         if ($JE->je_credit!=""){
@@ -21109,6 +21172,17 @@ class ReportController extends Controller
                             $coa_month=0;
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                                        $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21137,6 +21211,17 @@ class ReportController extends Controller
                                 $coa_month=0;
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                                        $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21182,6 +21267,17 @@ class ReportController extends Controller
                                 foreach ($output as $ST){
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                     $coa_month=0;
+                                    $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                     foreach ($JournalEntry as $JE){
                                         if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21198,6 +21294,9 @@ class ReportController extends Controller
                                 }
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                 $coa_name_total=0;
+                                $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal." 
+                                    ORDER BY created_at ASC");
                                 foreach ($JournalEntry as $JE){
                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                         if ($JE->je_credit!=""){
@@ -21221,6 +21320,17 @@ class ReportController extends Controller
                             $coa_month=0;
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
+                                        $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21248,6 +21358,17 @@ class ReportController extends Controller
                             $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                             $coa_month=0;
                                 foreach ($COA as $Coa){
+                                    $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                         foreach ($JournalEntry as $JE){
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
@@ -21278,6 +21399,17 @@ class ReportController extends Controller
                             $coa_month=0;
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                                        $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
                                             if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21323,6 +21455,17 @@ class ReportController extends Controller
                                         foreach ($output as $ST){
                                             $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                             $coa_month=0;
+                                            $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
                                                 if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21339,6 +21482,9 @@ class ReportController extends Controller
                                         }
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                         $coa_name_total=0;
+                                        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                        ".$sortsettingjournal.$sortjournal." 
+                                        ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                 if ($JE->je_credit!=""){
@@ -21361,6 +21507,17 @@ class ReportController extends Controller
                                     $coa_month=0;
                                     foreach ($COA as $Coa){
                                         if ($Coa->coa_account_type==$coa->coa_account_type){
+                                            $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
                                                 if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21395,6 +21552,17 @@ class ReportController extends Controller
                             $coa_month=0;
                                     foreach ($COA as $Coa){
                                         if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                            $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
                                                 if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21423,6 +21591,17 @@ class ReportController extends Controller
                                     $coa_month=0;
                                     foreach ($COA as $Coa){
                                         if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
+                                            $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
                                                 if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -21439,6 +21618,17 @@ class ReportController extends Controller
                                     $coa_month2=0;
                                     foreach ($COA as $Coa){
                                         if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                            $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
+                                    $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
+                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    if($sortsettingjournal=="" && $sortjournal==""){
+                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                    }else{
+                                        
+                                    }
+                                    $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                    ".$sortsettingjournal.$sortjournal.$between." 
+                                    ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
                                                 if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
@@ -27024,6 +27214,7 @@ class ReportController extends Controller
         $TO=$request->TO;
         $filtertemplate=$request->filtertemplate;
         $CostCenterFilter=$request->CostCenterFilter;
+        $AccountFilter=$request->AccountFilter;
         $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
         $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
         $before="WHERE st_date <='".$TO."'";
@@ -27067,7 +27258,14 @@ class ReportController extends Controller
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                             ".$sortsettingjournal.$sortjournal." 
                             ORDER BY created_at ASC");
-        $COA= ChartofAccount::where('coa_active','1')->get();
+        if($AccountFilter=='All'){
+            $COA= ChartofAccount::where('coa_active','1')->get();
+        }else{
+            $COA= ChartofAccount::where([
+                ['id','=',$AccountFilter]
+            ])->get();
+        }
+        
         $jounal = DB::table('journal_entries')
                 ->select('je_no')
                 ->groupBy('je_no')
@@ -27798,7 +27996,9 @@ class ReportController extends Controller
                 $coa_name_totaldebit=0;
                 $coa_name_totalcredit=0;
                 $totaltotalssasdasd=0;
+                $totaltotalssasdasd_d=0;
                 $beginningbalance_total=0;
+                $beginningbalance_total_d=0;
                 foreach ($COA as $coa){
                     $coa_name_total=0;
                     $coa_name_totalc=0;
@@ -27847,13 +28047,30 @@ class ReportController extends Controller
                         $tablecontent.='<tr>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                         $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
-                        $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
-                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>'; 
+                        if($coa->normal_balance=="Debit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>'; 
+                            $beginningbalance_total_d+=$coa->coa_balance;
+                        }
+                        else if($coa->normal_balance=="Credit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>'; 
+                            $beginningbalance_total+=$coa->coa_balance;
+                        } 
+                        
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
-                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
-                        $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
-                        $beginningbalance_total+=$coa->coa_balance;
-                        $totaltotalssasdasd+=($debit_validated-$credit_validated)+$coa->coa_balance; 
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';
+                        if($coa->normal_balance=="Debit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>'; 
+                            $totaltotalssasdasd_d+=($debit_validated-$credit_validated)+$coa->coa_balance; 
+                        }
+                        else if($coa->normal_balance=="Credit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)-$coa->coa_balance,2).'</td>'; 
+                            $totaltotalssasdasd+=($debit_validated-$credit_validated)-$coa->coa_balance; 
+                        }
                         $tablecontent.='</tr>';  
                     }
                     $coa_name_totaldebit+=$coa_name_totald;
@@ -27861,9 +28078,11 @@ class ReportController extends Controller
                 }
                 $tablecontent.='<tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">';  
                 $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total_d,2).'</td>';
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total,2).'</td>';
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>'; 
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';
+                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd_d,2).'</td>';  
                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>';  
                 $tablecontent.='</tr>';  
             }else if($CostCenterFilter=="By Cost Center"){
@@ -27881,16 +28100,18 @@ class ReportController extends Controller
                     if(count($JournalEntry)!=0){
                         
                         $beginningbalance_total=0;
+                        $beginningbalance_total_d=0;
                         $coa_name_totaldebit=0;
                         $coa_name_totalcredit=0;
                         $totaltotalssasdasd=0;
+                        $totaltotalssasdasd_d=0;
                         foreach ($COA as $coa){
                             $coa_name_total=0;
                             $coa_name_totalc=0;
                             $coa_name_totald=0;
                             foreach ($JournalEntry as $JE){
                                 if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
-                                    if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
                                         $coa_name_totalc+=$JE->je_credit;
                                         $coa_name_total+=$JE->je_credit;
                                     }else{
@@ -27922,24 +28143,47 @@ class ReportController extends Controller
                                 $tablecontent.='<tr>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
                                 $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
-                                $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
-                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                                $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>'; 
+                                if($coa->normal_balance=="Debit"){
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>'; 
+                                    $beginningbalance_total_d+=$coa->coa_balance;
+                                }
+                                else if($coa->normal_balance=="Credit"){
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>'; 
+                                    $beginningbalance_total+=$coa->coa_balance;
+                                } 
+                                
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
-                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
-                                $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>';  
-                                $beginningbalance_total+=$coa->coa_balance;
-                                $totaltotalssasdasd+=($debit_validated-$credit_validated)+$coa->coa_balance;
+                                $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';
+                                if($coa->normal_balance=="Debit"){
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>'; 
+                                    $totaltotalssasdasd_d+=($debit_validated-$credit_validated)+$coa->coa_balance; 
+                                }
+                                else if($coa->normal_balance=="Credit"){
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>'; 
+                                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)-$coa->coa_balance,2).'</td>'; 
+                                    $totaltotalssasdasd+=($debit_validated-$credit_validated)-$coa->coa_balance; 
+                                }   
+                                
+                                
+                                
+                                $tablecontent.='</tr>'; 
                             }
                             $coa_name_totaldebit+=$coa_name_totald;
                             $coa_name_totalcredit+=$coa_name_totalc;
                         }
                         $tablecontent.='<tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">';  
                         $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total_d,2).'</td>';
                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total,2).'</td>';
-                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
-                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
-                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>';  
-                        $tablecontent.='</tr>';    
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>'; 
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd_d,2).'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>'; 
+                        $tablecontent.='</tr>';     
                     }
             }
         }
@@ -27963,14 +28207,16 @@ class ReportController extends Controller
             $coa_name_totaldebit=0;
             $coa_name_totalcredit=0;
             $totaltotalssasdasd=0;
+            $totaltotalssasdasd_d=0;
             foreach ($COA as $coa){
                 $beginningbalance_total=0;
+                $beginningbalance_total_d=0;
                 $coa_name_total=0;
                 $coa_name_totalc=0;
                 $coa_name_totald=0;
                 foreach ($JournalEntry as $JE){
                     if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
-                        if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                        if ($JE->je_credit!=""){
                             $coa_name_totalc+=$JE->je_credit;
                             $coa_name_total+=$JE->je_credit;
                         }else{
@@ -28000,32 +28246,59 @@ class ReportController extends Controller
                     $credit_validated=$credit!=""? $credit : 0;
                     $debit_validated=$debit!=""? $debit : 0;
                     $tablecontent.='<tr>';  
-                    $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
-                    $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
-                    $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>';  
-                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
-                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
-                    $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';  
-                    $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
-                    $beginningbalance_total+=$coa->coa_balance;
-                    $totaltotalssasdasd+=($debit_validated-$credit_validated)+$coa->coa_balance;
+                        $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_code.'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_name.'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;">'.$coa->coa_account_type.'</td>'; 
+                        if($coa->normal_balance=="Debit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>'; 
+                            $beginningbalance_total_d+=$coa->coa_balance;
+                        }
+                        else if($coa->normal_balance=="Credit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;"></td>';  
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa->coa_balance,2).'</td>'; 
+                            $beginningbalance_total+=$coa->coa_balance;
+                        } 
+                        
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($debit!=""? number_format($debit,2) : '').'</td>';  
+                        $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.($credit!=""? number_format($credit,2): '').'</td>';
+                        if($coa->normal_balance=="Debit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)+$coa->coa_balance,2).'</td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>'; 
+                            $totaltotalssasdasd_d+=($debit_validated-$credit_validated)+$coa->coa_balance; 
+                        }
+                        else if($coa->normal_balance=="Credit"){
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;"></td>'; 
+                            $tablecontent.='<td style="vertical-align:middle;text-align:right;font-weight:bold;">'.number_format(($debit_validated-$credit_validated)-$coa->coa_balance,2).'</td>'; 
+                            $totaltotalssasdasd+=($debit_validated-$credit_validated)-$coa->coa_balance; 
+                        }   
+                        
+                        
+                        
+                        $tablecontent.='</tr>'; 
                 }
                 $coa_name_totaldebit+=$coa_name_totald;
                 $coa_name_totalcredit+=$coa_name_totalc;
             }
             $tablecontent.='<tr style="background-color: #eaf0f7;border-top:1px solid #ccc;border-bottom:1px solid #ccc;font-weight:bold;">';  
             $tablecontent.='<td colspan="3" style="vertical-align:middle;">Total</td>';  
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total_d,2).'</td>';
             $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($beginningbalance_total,2).'</td>';
-            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>';  
-            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';  
-            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>';  
-            $tablecontent.='</tr>';     
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totaldebit,2).'</td>'; 
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($coa_name_totalcredit,2).'</td>';
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd_d,2).'</td>';  
+            $tablecontent.='<td style="vertical-align:middle;text-align:right;">'.number_format($totaltotalssasdasd,2).'</td>'; 
+            $tablecontent.='</tr>';  
         }
         
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th >Account Code</th><th >Account Title</th><th >Account Account Type</th><th style="text-align:right;">Beginning Balance</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;">Total</th>'
-                .'</tr></thead>'
+                .'<th style="vertical-align:middle;" rowspan="2">Account Code</th><th style="vertical-align:middle;" rowspan="2">Account Title</th><th style="vertical-align:middle;" rowspan="2">Account Account Type</th><th style="text-align:center;" colspan="2">Beginning Balance</th><th  colspan="2" style="text-align:center;">Current</th><th  colspan="2" style="text-align:center;">Total</th>'
+                .'</tr>'
+                .'<tr>'
+                .'<th>Debit</th><th>Credit</th><th>Debit</th><th>Credit</th><th>Debit</th><th>Credit</th>'
+                .'</tr>'
+                .'</thead>'
                 .'<tbody>'.
                 $tablecontent
                 .'</tbody>'
@@ -28560,7 +28833,7 @@ class ReportController extends Controller
         if($sortsettingjournal==""){
             $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
         }else{
-            $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
         }
         
         if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
@@ -28571,183 +28844,242 @@ class ReportController extends Controller
                 $sortsettingjournal="";
             }
         }
-        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
-                            ".$sortjournal." 
-                            ORDER BY created_at ASC");
         $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
                             JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
                             ".$sortsetting." 
                             ORDER BY st_no ASC");
-        $cost_center_list=CostCenter::all();
         $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+        $STCustomer= DB::table('sales_transaction')
+                        ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                        ->select('st_customer_id')
+                        ->groupBy('st_customer_id')
+                        ->get();
+        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                            ".$sortjournal." 
+                            ORDER BY created_at ASC");
+        $cost_center_list=CostCenter::all();
         $tablecontent="";
         if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
             if($CostCenterFilter=="All"){
-                foreach($SalesTransaction as $emp){
-            
-                    $date1=date_create(date('Y-m-d'));
-                    $date2=date_create($emp->st_due_date);
-                    $diff=date_diff($date1,$date2);
-                    if($emp->st_type=="Invoice" && ($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" ) && ($emp->remark!="Cancelled") ){
-                        $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "";
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_type;
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_no;
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        if($emp->display_name!=""){
-                        $tablecontent.=$emp->display_name;
-                        }else{
-                        $tablecontent.=$emp->f_name." ".$emp->l_name;
+                foreach($STCustomer as $STC){
+                    $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
+                    $tablecontent.='<td style="vertical-align:middle;" colspan="20">';
+                    foreach($SalesTransaction as $emp){
+                        if($emp->customer_id==$STC->st_customer_id){
+                            if($emp->st_status=="Paid"){
+                            $tablecontent.=$emp->display_name;
+                            break;
                         }
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_memo;
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $date1=date_create(date('Y-m-d'));
-                        $date2=date_create($emp->st_due_date);
-                        $diff=date_diff($date1,$date2);
-                        if(($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" )){
-                            $tablecontent.="<span title='overdue' style='color:red;'>".($emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "")."</span>";
-                        }else{
-                            $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "";
                         }
-                        
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $total=0;
-                        foreach($st_invoice as $st_i){
-                            if($st_i->st_i_no==$emp->st_no){
-                                $total=$total+$st_i->st_i_total;
+                    }
+                    $tablecontent.='</td>';
+                    $tablecontent.='</tr>';
+                    foreach($SalesTransaction as $emp){
+                        if($emp->customer_id==$STC->st_customer_id){
+                        if($emp->remark!="Cancelled"){
+                            if($emp->st_type=="Invoice" &&($emp->st_status=="Paid" )){
+                                $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "";
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_type;
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_no;
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                if($emp->display_name!=""){
+                                $tablecontent.=$emp->display_name;
+                                }else{
+                                $tablecontent.=$emp->f_name." ".$emp->l_name;
+                                }
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_memo;
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                if($emp->st_due_date!=""){
+                                    $date1=date_create(date('Y-m-d'));
+                                    $date2=date_create($emp->st_due_date);
+                                    $diff=date_diff($date1,$date2);
+                                    if(($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" )){
+                                        $tablecontent.='<span title="overdue" style="color:red;">'; 
+                                        $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : ""; 
+                                        $tablecontent.='</span>'; 
+                                    }else{
+                                        $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : ""; 
+                                    }
+                                }
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $total=0;
+                                foreach($st_invoice as $st_i){
+                                    if($st_i->st_i_no==$emp->st_no){
+                                        $total=$total+$st_i->st_i_total;
+                                    }
+                                }
+                                $tablecontent.=number_format($total,2);
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_status;
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_bill_address;
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_bill_address;
+                                $tablecontent.='</td>';
+                                $tablecontent.='<td style="vertical-align:middle;">';
+                                $tablecontent.=$emp->st_term;
+                                $tablecontent.='</td>';
+                
+                                
                             }
                         }
-                        $tablecontent.=number_format($total,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=number_format($emp->st_balance,2);
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_bill_address;
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_bill_address;
-                        $tablecontent.='</td>';
-                        $tablecontent.='<td style="vertical-align:middle;">';
-                        $tablecontent.=$emp->st_term;
-                        $tablecontent.='</td>';
+                        
+            
+                        }
                     }
                 }
             }else if($CostCenterFilter=="By Cost Center"){
                 foreach($cost_center_list as $ccl){
-                    
-                    $sortjournal="WHERE je_cost_center='".$ccl->cc_no."' AND je_transaction_type='Invoice'";
+                    $sortjournal="WHERE je_cost_center='".$ccl->cc_no."' AND (je_transaction_type='Invoice' OR je_transaction_type='Credit Note' OR je_transaction_type='Sales Receipt')";
                     if($sortsettingjournal==""){
-                    $sortjournal="WHERE je_cost_center='".$ccl->cc_no."' AND je_transaction_type='Invoice'";
+                    $sortjournal="WHERE je_cost_center='".$ccl->cc_no."' AND (je_transaction_type='Invoice' OR je_transaction_type='Credit Note' OR je_transaction_type='Sales Receipt')";
                     }else{
-                    $sortjournal="WHERE je_cost_center='".$ccl->cc_no."' AND je_transaction_type='Invoice'";
+                    $sortjournal="WHERE je_cost_center='".$ccl->cc_no."' AND (je_transaction_type='Invoice' OR je_transaction_type='Credit Note' OR je_transaction_type='Sales Receipt')";
                     }
                     $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
                     ".$sortjournal." 
                     ORDER BY created_at ASC");
                     if(count($JournalEntry)!=0){
                         $tablecontent.="<tr>";
-                        $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+                        $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
                         $tablecontent.="</tr>";
                         $tablecontent.="<tr>";
-                        $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
-                       
+                        $tablecontent.='<td colspan="9" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
                         $tablecontent.=$ccl->cc_name;
-                        
                         $tablecontent.='</td>';
                         $tablecontent.="</tr>";
                         $tablecontent.="<tr>";
-                        $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+                        $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
                         $tablecontent.="</tr>";
-		
-                    }
-                    foreach($SalesTransaction as $emp){
-            
-                        $date1=date_create(date('Y-m-d'));
-                        $date2=date_create($emp->st_due_date);
-                        $diff=date_diff($date1,$date2);
-                        if($emp->st_type=="Invoice" && ($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" ) && ($emp->remark!="Cancelled") ){
-                            foreach($JournalEntry as $JJJJ){
-                                if($JJJJ->je_cost_center==$ccl->cc_no){
-                                    if($JJJJ->other_no==$emp->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
-                                    
-                                    $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "";
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_type;
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_no;
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    if($emp->display_name!=""){
-                                    $tablecontent.=$emp->display_name;
-                                    }else{
-                                    $tablecontent.=$emp->f_name." ".$emp->l_name;
-                                    }
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_memo;
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $date1=date_create(date('Y-m-d'));
-                                    $date2=date_create($emp->st_due_date);
-                                    $diff=date_diff($date1,$date2);
-                                    if(($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" )){
-                                        $tablecontent.="<span title='overdue' style='color:red;'>".($emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "")."</span>";
-                                    }else{
-                                        $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "";
-                                    }
-                                    
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $total=0;
-                                    foreach($st_invoice as $st_i){
-                                        if($st_i->st_i_no==$emp->st_no){
-                                            $total=$total+$st_i->st_i_total;
+                        foreach($STCustomer as $STC){
+                            $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
+                            $tablecontent.='<td style="vertical-align:middle;" colspan="20">';
+                            
+                            foreach($SalesTransaction as $emp){
+                                $go=0;
+                                foreach($JournalEntry as $JJJJ){
+                                    if($JJJJ->je_cost_center==$ccl->cc_no){
+                                        if($JJJJ->other_no==$emp->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
+                                        $go=1;
                                         }
-                                    }
-                                    $tablecontent.=number_format($total,2);
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=number_format($emp->st_balance,2);
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_bill_address;
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_bill_address;
-                                    $tablecontent.='</td>';
-                                    $tablecontent.='<td style="vertical-align:middle;">';
-                                    $tablecontent.=$emp->st_term;
-                                    $tablecontent.='</td>';
+                                        
                                     }
                                     
                                 }
+                                if($emp->customer_id==$STC->st_customer_id && $go==1){
+                                    if($emp->st_status=="Paid"){
+                                    $tablecontent.=$emp->display_name;
+                                    break;
+                                }
+                                }
+                            }
+                            $tablecontent.='</td>';
+                            $tablecontent.='</tr>';
+                            
+                            foreach($SalesTransaction as $emp){
+                                $go=0;
+                                foreach($JournalEntry as $JJJJ){
+                                    if($JJJJ->je_cost_center==$ccl->cc_no){
+                                        if($JJJJ->other_no==$emp->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
+                                        $go=1;
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                if($emp->customer_id==$STC->st_customer_id){
+                                if($emp->remark!="Cancelled" && $go==1){
+                                    if($emp->st_type=="Invoice" &&($emp->st_status=="Paid")){
+                                        $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "";
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_type;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_no;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        if($emp->display_name!=""){
+                                        $tablecontent.=$emp->display_name;
+                                        }else{
+                                        $tablecontent.=$emp->f_name." ".$emp->l_name;
+                                        }
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_memo;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        if($emp->st_due_date!=""){
+                                            $date1=date_create(date('Y-m-d'));
+                                            $date2=date_create($emp->st_due_date);
+                                            $diff=date_diff($date1,$date2);
+                                            if(($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" )){
+                                                $tablecontent.='<span title="overdue" style="color:red;">'; 
+                                                $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : ""; 
+                                                $tablecontent.='</span>'; 
+                                            }else{
+                                                $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : ""; 
+                                            }
+                                        }
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $total=0;
+                                        foreach($st_invoice as $st_i){
+                                            if($st_i->st_i_no==$emp->st_no){
+                                                $total=$total+$st_i->st_i_total;
+                                            }
+                                        }
+                                        $tablecontent.=number_format($total,2);
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_status;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_bill_address;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_bill_address;
+                                        $tablecontent.='</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;">';
+                                        $tablecontent.=$emp->st_term;
+                                        $tablecontent.='</td>';
+                        
+                                        
+                                    }
+                                }
                                 
+                    
+                                }
                             }
                         }
                     }
+                    
+                    
                 }
             }
+
         }else{
             $tablecontent.="<tr>";
-            $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+            $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
             $tablecontent.="</tr>";
             $tablecontent.="<tr>";
-            $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
+            $tablecontent.='<td colspan="9" style="vertical-align:middle;font-weight:bold;font-size:14px;text-align:center;">';
             foreach($cost_center_list as $ccl){
                 if($ccl->cc_no==$CostCenterFilter){
                     $tablecontent.=$ccl->cc_name;
@@ -28756,19 +29088,47 @@ class ReportController extends Controller
             $tablecontent.='</td>';
             $tablecontent.="</tr>";
             $tablecontent.="<tr>";
-            $tablecontent.='<td colspan="11" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
+            $tablecontent.='<td colspan="8" style="vertical-align:middle;font-weight:bold;font-size:14px;"></td>';
             $tablecontent.="</tr>";
-            
-            foreach($SalesTransaction as $emp){
-            
-                $date1=date_create(date('Y-m-d'));
-                $date2=date_create($emp->st_due_date);
-                $diff=date_diff($date1,$date2);
-                if($emp->st_type=="Invoice" && ($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" ) && ($emp->remark!="Cancelled") ){
+            foreach($STCustomer as $STC){
+                $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
+                $tablecontent.='<td style="vertical-align:middle;" colspan="20">';
+                
+                foreach($SalesTransaction as $emp){
+                    $go=0;
                     foreach($JournalEntry as $JJJJ){
                         if($JJJJ->je_cost_center==$CostCenterFilter){
                             if($JJJJ->other_no==$emp->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
+                            $go=1;
+                            }
                             
+                        }
+                        
+                    }
+                    if($emp->customer_id==$STC->st_customer_id && $go==1){
+                        if($emp->st_status=="Paid" ){
+                        $tablecontent.=$emp->display_name;
+                        break;
+                    }
+                    }
+                }
+                $tablecontent.='</td>';
+                $tablecontent.='</tr>';
+                
+                foreach($SalesTransaction as $emp){
+                    $go=0;
+                    foreach($JournalEntry as $JJJJ){
+                        if($JJJJ->je_cost_center==$CostCenterFilter){
+                            if($JJJJ->other_no==$emp->st_no && ($JJJJ->je_transaction_type=="Invoice" || $JJJJ->je_transaction_type=="Credit Note" ) && $JJJJ->je_credit!=""){
+                            $go=1;
+                            }
+                            
+                        }
+                        
+                    }
+                    if($emp->customer_id==$STC->st_customer_id){
+                    if($emp->remark!="Cancelled" && $go==1){
+                        if($emp->st_type=="Invoice" &&($emp->st_status=="Paid")){
                             $tablecontent.='<tr style="border-bottom:1px solid #ccc;">';
                             $tablecontent.='<td style="vertical-align:middle;">';
                             $tablecontent.=$emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "";
@@ -28790,15 +29150,18 @@ class ReportController extends Controller
                             $tablecontent.=$emp->st_memo;
                             $tablecontent.='</td>';
                             $tablecontent.='<td style="vertical-align:middle;">';
-                            $date1=date_create(date('Y-m-d'));
-                            $date2=date_create($emp->st_due_date);
-                            $diff=date_diff($date1,$date2);
-                            if(($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" )){
-                                $tablecontent.="<span title='overdue' style='color:red;'>".($emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "")."</span>";
-                            }else{
-                                $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "";
+                            if($emp->st_due_date!=""){
+                                $date1=date_create(date('Y-m-d'));
+                                $date2=date_create($emp->st_due_date);
+                                $diff=date_diff($date1,$date2);
+                                if(($diff->format("%R")=="-" || ($diff->format("%R")=="+" && $diff->format("%a")=="0")) && ($emp->st_status=="Open" || $emp->st_status=="Partially paid" )){
+                                    $tablecontent.='<span title="overdue" style="color:red;">'; 
+                                    $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : ""; 
+                                    $tablecontent.='</span>'; 
+                                }else{
+                                    $tablecontent.=$emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : ""; 
+                                }
                             }
-                            
                             $tablecontent.='</td>';
                             $tablecontent.='<td style="vertical-align:middle;">';
                             $total=0;
@@ -28810,7 +29173,7 @@ class ReportController extends Controller
                             $tablecontent.=number_format($total,2);
                             $tablecontent.='</td>';
                             $tablecontent.='<td style="vertical-align:middle;">';
-                            $tablecontent.=number_format($emp->st_balance,2);
+                            $tablecontent.=$emp->st_status;
                             $tablecontent.='</td>';
                             $tablecontent.='<td style="vertical-align:middle;">';
                             $tablecontent.=$emp->st_bill_address;
@@ -28821,18 +29184,21 @@ class ReportController extends Controller
                             $tablecontent.='<td style="vertical-align:middle;">';
                             $tablecontent.=$emp->st_term;
                             $tablecontent.='</td>';
-                            }
+            
                             
                         }
-                        
+                    }
+                    
+        
                     }
                 }
             }
         }
         
+        
         $table='<table id="tablemain" class="table table-sm" style="text-align:left;font-size:12px;">'
                 .'<thead><tr>'
-                .'<th>Date</th><th>Transaction Type</th><th>No.</th><th>Name</th><th>Memo</th><th>Due Date</th><th>Amount</th><th>Open Balance</th><th>Billing Address</th><th>Shipping Address</th><th>Terms</th>'
+                .'<th>Date</th><th>Transaction Type</th><th>No.</th><th>Name</th><th>Memo</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Billing Address</th><th>Shipping Address</th><th>Terms</th>'
                 .'</tr></thead>'
                 .'<tbody>'.
                 $tablecontent
