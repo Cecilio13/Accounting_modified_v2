@@ -331,6 +331,12 @@ Route::group(['middleware'=>['auth']], function() {
     Route::post('/UploadMassInvoice', 'ChartofAccountsController@UploadMassInvoice')->name('UploadMassInvoice');
     Route::post('/UploadMassBIDQuot', 'ChartofAccountsController@UploadMassBIDQuot')->name('UploadMassBIDQuot');
     
+    Route::post('/UploadMassBill', 'ChartofAccountsController@UploadMassBill')->name('UploadMassBill');
+    
+    
+    
+    
+    Route::get('/GetInvoiceExcelTemplateBill', 'ChartofAccountsController@GetInvoiceExcelTemplateBill')->name('GetInvoiceExcelTemplateBill');
     
     Route::post('/export_ledger_to_excel', 'ChartofAccountsController@export_ledger_to_excel')->name('export_ledger_to_excel');
     Route::get('/GetInvoiceExcelTemplate', 'ChartofAccountsController@GetInvoiceExcelTemplate')->name('GetInvoiceExcelTemplate');
