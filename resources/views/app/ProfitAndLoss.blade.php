@@ -16,6 +16,13 @@
             });
         }
     </script>
+    <script>
+        $(document).ready(function(){
+           document.getElementById('filtertemplate').value="This Year";
+           changedates(document.getElementById('filtertemplate'))
+           
+        });
+   </script>
     <div id="">
     <div id="modallike" onclick="hidecustomizationsection()">
         
@@ -368,7 +375,7 @@
     </div>
     <div class="col-md-2" style="text-align:right;">
         <button style="display:none;" class="btn btn-outline-dark" onclick="showcustomizationsection()">Customize</button>
-        <button class="btn btn-success"  data-toggle="modal" data-target="#exampleModal">Save customization</button>
+        <button class="btn btn-success" data-toggle="modal" data-target="#exampleModal">Save customization</button>
         <div class="dropdown">
         <button class="btn btn-primary mt-2 dropdown-toggle" style="width:100%;" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Report Category

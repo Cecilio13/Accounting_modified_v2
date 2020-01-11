@@ -16,6 +16,13 @@
             });
         }
     </script>
+    <script>
+        $(document).ready(function(){
+           document.getElementById('filtertemplate').value="This Year";
+           changedates(document.getElementById('filtertemplate'))
+           
+        });
+   </script>
     <div id="">
     <div id="modallike" onclick="hidecustomizationsection()">
         
@@ -375,7 +382,7 @@
                         <button type="button" class="btn btn-primary btn-sm" onclick="submitdates()">Fetch Data</button>
                     </div>
                 </div>
-            </div> 
+            </div>  
         
     </div>
     <div class="col-md-2" style="text-align:right;">

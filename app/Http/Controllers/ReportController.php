@@ -2681,7 +2681,7 @@ class ReportController extends Controller
                         
                         $tablecontent.='<td colspan="1">';
                         
-                        $tablecontent.=$je->je_attachment!=""? date('m-d-Y',strtotime($je->je_attachment)) : '';
+                        $tablecontent.=$je->created_at!=""? date('m-d-Y',strtotime($je->created_at)) : '';
                         
                         $tablecontent.='<td colspan="1">';
                         
@@ -2737,7 +2737,7 @@ class ReportController extends Controller
                         
                         $tablecontent.='<td colspan="1">';
                         
-                        $tablecontent.=$je->je_attachment!=""? date('m-d-Y',strtotime($je->je_attachment)) : '';
+                        $tablecontent.=$je->created_at!=""? date('m-d-Y',strtotime($je->created_at)) : '';
                         
                         $tablecontent.='<td colspan="1">';
                         
@@ -3124,7 +3124,7 @@ class ReportController extends Controller
                                 
                                 $tablecontent.='<td colspan="1">';
                                 
-                                $tablecontent.=$je->je_attachment!=""? date('m-d-Y',strtotime($je->je_attachment)) : '';
+                                $tablecontent.=$je->created_at!=""? date('m-d-Y',strtotime($je->created_at)) : '';
                                 
                                 $tablecontent.='<td colspan="1">';
                                 
@@ -3180,7 +3180,7 @@ class ReportController extends Controller
                                 
                                 $tablecontent.='<td colspan="1">';
                                 
-                                $tablecontent.=$je->je_attachment!=""? date('m-d-Y',strtotime($je->je_attachment)) : '';
+                                $tablecontent.=$je->created_at!=""? date('m-d-Y',strtotime($je->created_at)) : '';
                                 
                                 $tablecontent.='<td colspan="1">';
                                 
@@ -3550,7 +3550,7 @@ class ReportController extends Controller
                         
                         $tablecontent.='<td colspan="1">';
                         
-                        $tablecontent.=$je->je_attachment!=""? date('m-d-Y',strtotime($je->je_attachment)) : '';
+                        $tablecontent.=$je->created_at!=""? date('m-d-Y',strtotime($je->created_at)) : '';
                         
                         $tablecontent.='<td colspan="1">';
                         
@@ -3606,7 +3606,7 @@ class ReportController extends Controller
                         
                         $tablecontent.='<td colspan="1">';
                         
-                        $tablecontent.=$je->je_attachment!=""? date('m-d-Y',strtotime($je->je_attachment)) : '';
+                        $tablecontent.=$je->created_at!=""? date('m-d-Y',strtotime($je->created_at)) : '';
                         
                         $tablecontent.='<td colspan="1">';
                         
@@ -12477,7 +12477,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12490,7 +12490,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12552,7 +12552,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12565,7 +12565,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12627,7 +12627,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12640,7 +12640,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12702,7 +12702,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12715,7 +12715,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12777,7 +12777,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12790,7 +12790,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12863,7 +12863,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12876,7 +12876,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12933,7 +12933,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -12946,7 +12946,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13010,7 +13010,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13023,7 +13023,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13081,7 +13081,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13094,7 +13094,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13382,7 +13382,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13395,7 +13395,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13457,7 +13457,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13470,7 +13470,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13532,7 +13532,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13545,7 +13545,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13607,7 +13607,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13620,7 +13620,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13682,7 +13682,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13695,7 +13695,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13768,7 +13768,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13781,7 +13781,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13838,7 +13838,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13851,7 +13851,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13915,7 +13915,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13928,7 +13928,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13986,7 +13986,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -13999,7 +13999,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14262,7 +14262,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14275,7 +14275,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14337,7 +14337,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14350,7 +14350,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14412,7 +14412,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14425,7 +14425,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14487,7 +14487,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14500,7 +14500,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14562,7 +14562,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14575,7 +14575,7 @@ class ReportController extends Controller
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                             $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                            $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                             $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14648,7 +14648,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14661,7 +14661,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14718,7 +14718,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14731,7 +14731,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14795,7 +14795,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14808,7 +14808,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14866,7 +14866,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -14879,7 +14879,7 @@ class ReportController extends Controller
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
                                     $tablecontent.='<td width="10px" style="vertical-align:middle;font-weight:bold;font-size:11px;"></td>';
-                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                    $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.$JE->je_transaction_type.'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;">'.($JE->je_transaction_type!="Journal Entry"? $JE->other_no : $JE->je_no).'</td>';
                                     $tablecontent.='<td class="dottedborderinner" style="vertical-align:middle;font-size:11px;text-align:right;">';
@@ -18133,7 +18133,7 @@ class ReportController extends Controller
                 
                 date_default_timezone_set('Asia/Manila');
                
-                    $date1  = $FirstDate[0]->je_attachment ;
+                    $date1  = $FirstDate[0]->created_at ;
                 
                 
             
@@ -18306,7 +18306,7 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18315,7 +18315,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18324,7 +18324,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -18333,7 +18333,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -18382,7 +18382,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type==$coa->coa_account_type){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18391,7 +18391,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18400,7 +18400,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -18409,7 +18409,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -18479,7 +18479,7 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18488,7 +18488,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18497,7 +18497,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -18506,7 +18506,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -18555,7 +18555,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18564,7 +18564,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18573,7 +18573,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -18582,7 +18582,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -18620,7 +18620,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18629,7 +18629,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18638,7 +18638,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -18647,7 +18647,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -18686,7 +18686,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18695,7 +18695,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18704,7 +18704,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -18713,7 +18713,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -18765,7 +18765,7 @@ class ReportController extends Controller
                                         $individualinvoice3=0;
                                         $individualinvoice4=0;
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice-=$JE->je_credit;
@@ -18774,7 +18774,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice2-=$JE->je_credit;
@@ -18783,7 +18783,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice3-=$JE->je_credit;
@@ -18792,7 +18792,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice4-=$JE->je_credit;
@@ -18840,7 +18840,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice-=$JE->je_credit;
@@ -18849,7 +18849,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2-=$JE->je_credit;
@@ -18858,7 +18858,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3-=$JE->je_credit;
@@ -18867,7 +18867,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4-=$JE->je_credit;
@@ -18910,7 +18910,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice-=$JE->je_credit;
@@ -18919,7 +18919,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2-=$JE->je_credit;
@@ -18928,7 +18928,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3-=$JE->je_credit;
@@ -18937,7 +18937,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4-=$JE->je_credit;
@@ -18976,7 +18976,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=='Revenues' || $Coa->coa_account_type=='Revenue'){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -18985,7 +18985,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -18994,7 +18994,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19003,7 +19003,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19022,7 +19022,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice12-=$JE->je_credit;
@@ -19031,7 +19031,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice22-=$JE->je_credit;
@@ -19040,7 +19040,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice32-=$JE->je_credit;
@@ -19049,7 +19049,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice42-=$JE->je_credit;
@@ -19127,7 +19127,7 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19136,7 +19136,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19145,7 +19145,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19154,7 +19154,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19203,7 +19203,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type==$coa->coa_account_type){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19212,7 +19212,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19221,7 +19221,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19230,7 +19230,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19300,7 +19300,7 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19309,7 +19309,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19318,7 +19318,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19327,7 +19327,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19376,7 +19376,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19385,7 +19385,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19394,7 +19394,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19403,7 +19403,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19441,7 +19441,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19450,7 +19450,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19459,7 +19459,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19468,7 +19468,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19507,7 +19507,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19516,7 +19516,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19525,7 +19525,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19534,7 +19534,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19586,7 +19586,7 @@ class ReportController extends Controller
                                         $individualinvoice3=0;
                                         $individualinvoice4=0;
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice-=$JE->je_credit;
@@ -19595,7 +19595,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice2-=$JE->je_credit;
@@ -19604,7 +19604,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice3-=$JE->je_credit;
@@ -19613,7 +19613,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice4-=$JE->je_credit;
@@ -19661,7 +19661,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice-=$JE->je_credit;
@@ -19670,7 +19670,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2-=$JE->je_credit;
@@ -19679,7 +19679,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3-=$JE->je_credit;
@@ -19688,7 +19688,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4-=$JE->je_credit;
@@ -19731,7 +19731,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice-=$JE->je_credit;
@@ -19740,7 +19740,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2-=$JE->je_credit;
@@ -19749,7 +19749,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3-=$JE->je_credit;
@@ -19758,7 +19758,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4-=$JE->je_credit;
@@ -19797,7 +19797,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=='Revenues' || $Coa->coa_account_type=='Revenue'){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19806,7 +19806,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19815,7 +19815,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19824,7 +19824,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -19843,7 +19843,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice12-=$JE->je_credit;
@@ -19852,7 +19852,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice22-=$JE->je_credit;
@@ -19861,7 +19861,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice32-=$JE->je_credit;
@@ -19870,7 +19870,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice42-=$JE->je_credit;
@@ -19943,7 +19943,7 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -19952,7 +19952,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -19961,7 +19961,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -19970,7 +19970,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20019,7 +20019,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type==$coa->coa_account_type){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -20028,7 +20028,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -20037,7 +20037,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -20046,7 +20046,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20116,7 +20116,7 @@ class ReportController extends Controller
                                 $individualinvoice3=0;
                                 $individualinvoice4=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -20125,7 +20125,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -20134,7 +20134,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -20143,7 +20143,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20192,7 +20192,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -20201,7 +20201,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -20210,7 +20210,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -20219,7 +20219,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20257,7 +20257,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -20266,7 +20266,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -20275,7 +20275,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -20284,7 +20284,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20323,7 +20323,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -20332,7 +20332,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -20341,7 +20341,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -20350,7 +20350,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20402,7 +20402,7 @@ class ReportController extends Controller
                                         $individualinvoice3=0;
                                         $individualinvoice4=0;
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice-=$JE->je_credit;
@@ -20411,7 +20411,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice2-=$JE->je_credit;
@@ -20420,7 +20420,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice3-=$JE->je_credit;
@@ -20429,7 +20429,7 @@ class ReportController extends Controller
                                                     }
                                                 }
                                             }
-                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                            elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $individualinvoice4-=$JE->je_credit;
@@ -20477,7 +20477,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice-=$JE->je_credit;
@@ -20486,7 +20486,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2-=$JE->je_credit;
@@ -20495,7 +20495,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3-=$JE->je_credit;
@@ -20504,7 +20504,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4-=$JE->je_credit;
@@ -20547,7 +20547,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice-=$JE->je_credit;
@@ -20556,7 +20556,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2-=$JE->je_credit;
@@ -20565,7 +20565,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3-=$JE->je_credit;
@@ -20574,7 +20574,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4-=$JE->je_credit;
@@ -20613,7 +20613,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=='Revenues' || $Coa->coa_account_type=='Revenue'){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice+=$JE->je_credit;
@@ -20622,7 +20622,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice2+=$JE->je_credit;
@@ -20631,7 +20631,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice3+=$JE->je_credit;
@@ -20640,7 +20640,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice4+=$JE->je_credit;
@@ -20659,7 +20659,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice12-=$JE->je_credit;
@@ -20668,7 +20668,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice22-=$JE->je_credit;
@@ -20677,7 +20677,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice32-=$JE->je_credit;
@@ -20686,7 +20686,7 @@ class ReportController extends Controller
                                             }
                                         }
                                     }
-                                    elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    elseif(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $individualinvoice42-=$JE->je_credit;
@@ -20741,7 +20741,7 @@ class ReportController extends Controller
         date_default_timezone_set('Asia/Manila');
         $date1  = date('m-d-Y');
         
-            $date1  = $FirstDate[0]->je_attachment ;
+            $date1  = $FirstDate[0]->created_at ;
         
         
         
@@ -20931,7 +20931,7 @@ class ReportController extends Controller
         
             date_default_timezone_set('Asia/Manila');
             
-            $date1  = $FirstDate[0]->je_attachment ;
+            $date1  = $FirstDate[0]->created_at ;
             
             $date2  = date('Y-m-d');  
         }
@@ -21123,9 +21123,9 @@ class ReportController extends Controller
                                     $coa_month=0;
                                     $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
 
                                     }
@@ -21133,7 +21133,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -21174,9 +21174,9 @@ class ReportController extends Controller
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                         $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21184,7 +21184,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month+=$JE->je_credit;
@@ -21213,9 +21213,9 @@ class ReportController extends Controller
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                         $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21223,7 +21223,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month+=$JE->je_credit;
@@ -21269,9 +21269,9 @@ class ReportController extends Controller
                                     $coa_month=0;
                                     $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21279,7 +21279,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -21322,9 +21322,9 @@ class ReportController extends Controller
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                         $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21332,7 +21332,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month+=$JE->je_credit;
@@ -21360,9 +21360,9 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21371,7 +21371,7 @@ class ReportController extends Controller
                                     ORDER BY created_at ASC");
                                     if ($Coa->coa_account_type=="Cost of Sales"){
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month+=$JE->je_credit;
@@ -21401,9 +21401,9 @@ class ReportController extends Controller
                                     if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                         $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21411,7 +21411,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month+=$JE->je_credit;
@@ -21457,9 +21457,9 @@ class ReportController extends Controller
                                             $coa_month=0;
                                             $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21467,7 +21467,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
-                                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                         if ($JE->je_credit!=""){
                                                             $coa_month-=$JE->je_credit;
@@ -21509,9 +21509,9 @@ class ReportController extends Controller
                                         if ($Coa->coa_account_type==$coa->coa_account_type){
                                             $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21519,7 +21519,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
-                                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                         if ($JE->je_credit!=""){
                                                             $coa_month-=$JE->je_credit;
@@ -21554,9 +21554,9 @@ class ReportController extends Controller
                                         if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                             $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21564,7 +21564,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
-                                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                         if ($JE->je_credit!=""){
                                                             $coa_month-=$JE->je_credit;
@@ -21593,9 +21593,9 @@ class ReportController extends Controller
                                         if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
                                             $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21603,7 +21603,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
-                                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                         if ($JE->je_credit!=""){
                                                             $coa_month+=$JE->je_credit;
@@ -21620,9 +21620,9 @@ class ReportController extends Controller
                                         if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                             $zxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01"));
                                     $sssxxc=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']));
-                                    $between="AND je_attachment BETWEEN $zxc AND $sssxxc";
+                                    $between="AND created_at BETWEEN $zxc AND $sssxxc";
                                     if($sortsettingjournal=="" && $sortjournal==""){
-                                        $between="WHERE je_attachment BETWEEN '$zxc' AND '$sssxxc'";
+                                        $between="WHERE created_at BETWEEN '$zxc' AND '$sssxxc'";
                                     }else{
                                         
                                     }
@@ -21630,7 +21630,7 @@ class ReportController extends Controller
                                     ".$sortsettingjournal.$sortjournal.$between." 
                                     ORDER BY created_at ASC");
                                             foreach ($JournalEntry as $JE){
-                                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                     if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                                         if ($JE->je_credit!=""){
                                                             $coa_month2-=$JE->je_credit;
@@ -21699,7 +21699,7 @@ class ReportController extends Controller
                                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                                 $coa_month=0;
                                                 foreach ($JournalEntry as $JE){
-                                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                             if ($JE->je_credit!=""){
                                                                 $coa_month+=$JE->je_credit;
@@ -21738,7 +21738,7 @@ class ReportController extends Controller
                                             foreach ($COA as $Coa){
                                                 if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                                     foreach ($JournalEntry as $JE){
-                                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                 if ($JE->je_credit!=""){
                                                                     $coa_month+=$JE->je_credit;
@@ -21766,7 +21766,7 @@ class ReportController extends Controller
                                             foreach ($COA as $Coa){
                                                 if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                                     foreach ($JournalEntry as $JE){
-                                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                 if ($JE->je_credit!=""){
                                                                     $coa_month+=$JE->je_credit;
@@ -21811,7 +21811,7 @@ class ReportController extends Controller
                                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                                 $coa_month=0;
                                                 foreach ($JournalEntry as $JE){
-                                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                             if ($JE->je_credit!=""){
                                                                 $coa_month+=$JE->je_credit;
@@ -21850,7 +21850,7 @@ class ReportController extends Controller
                                             foreach ($COA as $Coa){
                                                 if ($Coa->coa_account_type=="Cost of Sales"){
                                                     foreach ($JournalEntry as $JE){
-                                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                 if ($JE->je_credit!=""){
                                                                     $coa_month+=$JE->je_credit;
@@ -21878,7 +21878,7 @@ class ReportController extends Controller
                                             foreach ($COA as $Coa){
                                                 if ($Coa->coa_account_type=="Cost of Sales"){
                                                     foreach ($JournalEntry as $JE){
-                                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                 if ($JE->je_credit!=""){
                                                                     $coa_month+=$JE->je_credit;
@@ -21907,7 +21907,7 @@ class ReportController extends Controller
                                             foreach ($COA as $Coa){
                                                 if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                                     foreach ($JournalEntry as $JE){
-                                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                 if ($JE->je_credit!=""){
                                                                     $coa_month+=$JE->je_credit;
@@ -21952,7 +21952,7 @@ class ReportController extends Controller
                                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                                         $coa_month=0;
                                                         foreach ($JournalEntry as $JE){
-                                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                     if ($JE->je_credit!=""){
                                                                         $coa_month-=$JE->je_credit;
@@ -21990,7 +21990,7 @@ class ReportController extends Controller
                                                 foreach ($COA as $Coa){
                                                     if ($Coa->coa_account_type==$coa->coa_account_type){
                                                         foreach ($JournalEntry as $JE){
-                                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                     if ($JE->je_credit!=""){
                                                                         $coa_month-=$JE->je_credit;
@@ -22024,7 +22024,7 @@ class ReportController extends Controller
                                                 foreach ($COA as $Coa){
                                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                                         foreach ($JournalEntry as $JE){
-                                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                     if ($JE->je_credit!=""){
                                                                         $coa_month-=$JE->je_credit;
@@ -22052,7 +22052,7 @@ class ReportController extends Controller
                                                 foreach ($COA as $Coa){
                                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
                                                         foreach ($JournalEntry as $JE){
-                                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                     if ($JE->je_credit!=""){
                                                                         $coa_month+=$JE->je_credit;
@@ -22068,7 +22068,7 @@ class ReportController extends Controller
                                                 foreach ($COA as $Coa){
                                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                                         foreach ($JournalEntry as $JE){
-                                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                                                     if ($JE->je_credit!=""){
                                                                         $coa_month2-=$JE->je_credit;
@@ -22135,7 +22135,7 @@ class ReportController extends Controller
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                 $coa_month=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $coa_month+=$JE->je_credit;
@@ -22174,7 +22174,7 @@ class ReportController extends Controller
                             foreach ($COA as $Coa){
                                 if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -22202,7 +22202,7 @@ class ReportController extends Controller
                             foreach ($COA as $Coa){
                                 if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -22247,7 +22247,7 @@ class ReportController extends Controller
                                 $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                 $coa_month=0;
                                 foreach ($JournalEntry as $JE){
-                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                    if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                         if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                             if ($JE->je_credit!=""){
                                                 $coa_month+=$JE->je_credit;
@@ -22286,7 +22286,7 @@ class ReportController extends Controller
                             foreach ($COA as $Coa){
                                 if ($Coa->coa_account_type=="Cost of Sales"){
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -22314,7 +22314,7 @@ class ReportController extends Controller
                             foreach ($COA as $Coa){
                                 if ($Coa->coa_account_type=="Cost of Sales"){
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -22343,7 +22343,7 @@ class ReportController extends Controller
                             foreach ($COA as $Coa){
                                 if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
                                     foreach ($JournalEntry as $JE){
-                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                             if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                 if ($JE->je_credit!=""){
                                                     $coa_month+=$JE->je_credit;
@@ -22388,7 +22388,7 @@ class ReportController extends Controller
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;">';
                                         $coa_month=0;
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month-=$JE->je_credit;
@@ -22426,7 +22426,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type==$coa->coa_account_type){
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month-=$JE->je_credit;
@@ -22460,7 +22460,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month-=$JE->je_credit;
@@ -22488,7 +22488,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month+=$JE->je_credit;
@@ -22504,7 +22504,7 @@ class ReportController extends Controller
                                 foreach ($COA as $Coa){
                                     if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
                                         foreach ($JournalEntry as $JE){
-                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if(date('Y-m-d',strtotime($JE->created_at))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->created_at))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
                                                 if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                                     if ($JE->je_credit!=""){
                                                         $coa_month2-=$JE->je_credit;
@@ -25393,9 +25393,10 @@ class ReportController extends Controller
         date_default_timezone_set('Asia/Manila');
         $date = date('l, d F Y h:i a \G\T\MO');
         $Report = Report::all();
-        $expense_transactions= DB::table('expense_transactions')
-                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
-                ->get();
+        $expense_transactions = DB::table('expense_transactions')
+            ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+            ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+            ->get();
         $et_account_details= DB::table('et_account_details')->get();
         $VoucherCount=Voucher::count() + 1;
         if($VoucherCount<10){
@@ -27330,7 +27331,7 @@ class ReportController extends Controller
                                     $tablecontent.='</tr>'; 
                                 }else{
                                     $tablecontent.='<tr>';  
-                                    $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>'; 
+                                    $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>'; 
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->other_no.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_debit,2).'</td>';  
@@ -27423,7 +27424,7 @@ class ReportController extends Controller
                                 if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$ccl->cc_no){
                                     if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                         $tablecontent.='<tr>';  
-                                        $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';  
+                                        $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->other_no.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
@@ -27432,7 +27433,7 @@ class ReportController extends Controller
                                         $tablecontent.='</tr>'; 
                                     }else{
                                         $tablecontent.='<tr>';  
-                                        $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';
+                                        $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->other_no.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                         $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_debit,2).'</td>';  
@@ -27518,7 +27519,7 @@ class ReportController extends Controller
                             if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->je_cost_center==$CostCenterFilter){
                                 if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
                                     $tablecontent.='<tr>';  
-                                    $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->other_no.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;"></td>';  
@@ -27527,7 +27528,7 @@ class ReportController extends Controller
                                     $tablecontent.='</tr>'; 
                                 }else{
                                     $tablecontent.='<tr>';  
-                                    $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->je_attachment)).'</td>';  
+                                    $tablecontent.='<td style="vertical-align:middle;padding-left:20px;">'.date('m-d-Y',strtotime($JE->created_at)).'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->other_no.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;">'.$JE->je_desc.'</td>';  
                                     $tablecontent.='<td style="vertical-align:middle;text-align:right;padding-left:20px;">'.number_format($JE->je_debit,2).'</td>';  
@@ -29392,7 +29393,7 @@ class ReportController extends Controller
                 $sortjournal="WHERE ($query_condition) AND (remark!='NULLED' OR remark IS NULL)";  
             }
             
-            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="AND created_at BETWEEN '".$FROM."' AND '".$TO."'";
             if($filtertemplate=="All"){
                 $sortsetting="";
                 $sortsettingjournal="";
@@ -29458,7 +29459,7 @@ class ReportController extends Controller
             
         }                  
         $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
-                            ".$sortjournal." 
+                            ".$sortjournal.$sortsettingjournal." 
                             ORDER BY created_at ASC");
         
         // $COA= ChartofAccount::where('coa_active','1')->orderBy('coa_code','ASC')->get();
@@ -29505,10 +29506,10 @@ class ReportController extends Controller
                         if($JE->remark==""){  
                         //<a style="cursor:pointer;" onclick="getModal('{{$JE->other_no}}','{{$JE->je_transaction_type}}','{{$PaymentFor}}')">
                         $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                        $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->je_attachment)) : "";
+                        $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->created_at)) : "";
                         $tablecontent.="</a>";
                         }else{
-                            $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->je_attachment)) : ""; 
+                            $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->created_at)) : ""; 
                         }
                         $tablecontent.="</td>";
                         $tablecontent.="<td style='vertical-align:middle;'>";
@@ -29643,11 +29644,11 @@ class ReportController extends Controller
                 if($JE->remark==""){  
                 //<a style="cursor:pointer;" onclick="getModal('{{$JE->other_no}}','{{$JE->je_transaction_type}}','{{$PaymentFor}}')">
                 $tablecontent.='<a style="cursor:pointer;" onclick="getModal(\''.$Invoice_Location.'\',\''.$Invoice_Type.'\',\''.$JE->other_no.'\',\''.$JE->je_transaction_type.'\',\''.$PaymentFor.'\')">';
-                $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->je_attachment)) : "";
+                $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->created_at)) : "";
                 $tablecontent.="</a>";
                 
                 }else{
-                    $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->je_attachment)) : ""; 
+                    $tablecontent.=$currentno!=$JE->je_no? date('m-d-Y',strtotime($JE->created_at)) : ""; 
                 }
                 $tablecontent.="</td>";
                 $tablecontent.="<td style='vertical-align:middle;'>";
@@ -33303,7 +33304,7 @@ class ReportController extends Controller
                 $journal_entries->je_name=$name;
                 $journal_entries->je_memo=$JMemo;
                 $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
+                $journal_entries->created_at=$JDate;
                 $journal_entries->je_transaction_type="Invoice";
                 $journal_entries->je_invoice_location_and_type=$request->location." ".$request->type;
                 $journal_entries->je_cost_center=$st_iss->st_p_cost_center;
@@ -33331,7 +33332,7 @@ class ReportController extends Controller
                 $journal_entries->je_name=$name;
                 $journal_entries->je_memo=$JMemo;
                 $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
+                $journal_entries->created_at=$JDate;
                 $journal_entries->je_transaction_type="Invoice";
                 $journal_entries->je_invoice_location_and_type=$request->location." ".$request->type;
                 $journal_entries->other_no=$request->id;
@@ -33637,7 +33638,7 @@ class ReportController extends Controller
                 $journal_entries->je_name=$name;
                 $journal_entries->je_memo=$JMemo;
                 $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
+                $journal_entries->created_at=$JDate;
                 $journal_entries->je_transaction_type="Credit Note";
                 $journal_entries->je_cost_center=$Costtttsasdasd;
                 $journal_entries->other_no=$request->id;
@@ -33664,7 +33665,7 @@ class ReportController extends Controller
                 $journal_entries->je_name=$name;
                 $journal_entries->je_memo=$JMemo;
                 $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
+                $journal_entries->created_at=$JDate;
                 $journal_entries->je_transaction_type="Credit Note";
                 $journal_entries->other_no=$request->id;
                 $journal_entries->je_cost_center=$Costtttsasdasd;
@@ -33986,7 +33987,7 @@ class ReportController extends Controller
                 $journal_entries->je_name=$name;
                 $journal_entries->je_memo=$JMemo;
                 $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
+                $journal_entries->created_at=$JDate;
                 $journal_entries->je_transaction_type="Sales Receipt";
                 $journal_entries->je_cost_center=$request->CostCenterSalesReceiptEdit;
                 $journal_entries->save();
@@ -34012,7 +34013,7 @@ class ReportController extends Controller
                 $journal_entries->je_name=$name;
                 $journal_entries->je_memo=$JMemo;
                 $journal_entries->created_at=$JDate;
-                $journal_entries->je_attachment=$JDate;
+                $journal_entries->created_at=$JDate;
                 $journal_entries->je_transaction_type="Sales Receipt";
                 $journal_entries->je_cost_center=$request->CostCenterSalesReceiptEdit;
                 $journal_entries->save();
