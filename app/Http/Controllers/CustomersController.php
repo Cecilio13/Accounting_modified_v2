@@ -54,1336 +54,581 @@ class CustomersController extends Controller
             return $next($request);
         });
     }
-    public function GetTotalDeposited(Request $request){
+    public function exporttoexcelINVOICELIST(Request $request){
         $FROM=$request->FROM;
-        $TO=$request->TO;
-        $CostCenterFilter=$request->CostCenterFilter;
-        $SS=SalesTransaction::all();
-        $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
-        if($FROM=="" || $TO==""){
-            $sortsetting="";
+        $no_header="";
+        $title="";
+        $InvoiceTYPE=$request->InvoiceTYPE;
+        if($InvoiceTYPE=="Main Sales Invoice"){
+            $no_header="Sales Invoice no";
+            $title="Main Sales Invoice";
+        }else if($InvoiceTYPE=="Main Bill Invoice"){
+            $no_header="Billing Invoice no";
+            $title="Main Billing Invoice";
+        }else if($InvoiceTYPE=="Branch Sales Invoice"){
+            $no_header="Sales Invoice no";
+            $title="Branch Sales Invoice";
+        }else if($InvoiceTYPE=="Branch Bill Invoice"){
+            $no_header="Billing Invoice no";
+            $title="Branch Billing Invoice";
         }
-        $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
-                            ".$sortsetting." 
-                            ORDER BY st_no ASC");
-        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
-                    WHERE remark!='NULLED' ORDER BY created_at ASC");
-        $totaldeposited=0;
-        foreach($SalesTransaction as $ST){
-            if($ST->st_type=="Sales Receipt" && $ST->st_action=="Deposited" && $ST->remark==""){
-
+        Excel::load('extra/edit_excel/export_invoice_sorted.xlsx', function($doc) use($request) {
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $InvoiceTYPE=$request->InvoiceTYPE;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $filtertemplate=$request->filtertemplate;
+            $sortsetting="";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting."
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice LEFT JOIN cost_center ON cost_center.cc_no=st_invoice.st_p_cost_center");
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortjournal." 
+                                ORDER BY created_at ASC");
+            $no_header="";
+            $title="";
+            if($InvoiceTYPE=="Main Sales Invoice"){
+                $no_header="Sales Invoice no";
+                $title="Main Sales Invoice";
+            }else if($InvoiceTYPE=="Main Bill Invoice"){
+                $no_header="Billing Invoice no";
+                $title="Main Billing Invoice";
+            }else if($InvoiceTYPE=="Branch Sales Invoice"){
+                $no_header="Sales Invoice no";
+                $title="Branch Sales Invoice";
+            }else if($InvoiceTYPE=="Branch Bill Invoice"){
+                $no_header="Billing Invoice no";
+                $title="Branch Billing Invoice";
+            }
+            $sheet = $doc->setActiveSheetIndex(0);
+            $sheet->setCellValue('B2', $title);
+            $sheet->setCellValue('B3', $no_header);
+            $cuss=3;
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
                 if($CostCenterFilter=="All"){
-                    $totaldeposited+=$ST->st_amount_paid;
-                }else{
-                    foreach ($JournalEntry as $JE){
-                        if ($JE->other_no==$ST->st_no && $JE->je_id=="1" && $CostCenterFilter==$JE->je_cost_center){
-                            $totaldeposited+=$ST->st_amount_paid; 
-                            //echo  $ST->st_amount_paid." ";
+                    foreach($SalesTransaction as $emp){
+                        if($emp->st_type=="Invoice" && $InvoiceTYPE==$emp->st_location." ".$emp->st_invoice_type){
+                            $cuss++;
+                            $sheet->setCellValue('B'.$cuss, $emp->st_no);
+                            $sheet->setCellValue('C'.$cuss, $emp->st_date!=""? date('m-d-Y',strtotime($emp->st_date)) : "");
+                            $cost_center="";
+                            foreach($st_invoice as $st_i){
+                                if($st_i->st_i_no==$emp->st_no && $st_i->st_p_cost_center!='' && $emp->st_i_attachment==$ST->st_p_reference_no){
+                                    $cost_center.=$st_i->cc_name."\n";
+                                }
+                            }
+                            
+                            $sheet->setCellValue('D'.$cuss, $cost_center);
+                            $sheet->getStyle('H5')->getAlignment()->setWrapText(true);
+                            $cost_center="";
+                            foreach($st_invoice as $st_i){
+                                if($st_i->st_i_no==$emp->st_no && $st_i->st_i_desc!='' && $emp->st_i_attachment==$ST->st_p_reference_no){
+                                    $cost_center.=$st_i->st_i_desc."\n";
+                                }
+                            }
+                            $sheet->setCellValue('E'.$cuss, $cost_center);
+                            $sheet->setCellValue('F'.$cuss, $emp->display_name!=""? $emp->display_name : $emp->f_name." ".$emp->l_name);
+                            $sheet->setCellValue('G'.$cuss, $emp->st_due_date!=""? date('m-d-Y',strtotime($emp->st_due_date)) : "");
+                            $payment_for_id=$emp->st_no;
+                            $st_location=$emp->st_location;
+                            $st_invoice_type=$emp->st_invoice_type;
+                            $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' AND st_invoice_type='$st_invoice_type'");
+                            $sr_nos="";
+                            $sr_nos2="";
+                            if($emp->cancellation_reason==NULL){
+                                foreach($sales_receipts as $sal){
+                                    if($sr_nos!=''){
+                                        $sr_nos.=", ".$sal->st_no;
+                                    }else{
+                                        $sr_nos.=$sal->st_no;
+                                    }
+                                    if($sr_nos2!=''){
+                                        $sr_nos2.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }else{
+                                        $sr_nos2.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('H'.$cuss, $sr_nos);
+                            $sheet->setCellValue('I'.$cuss, $sr_nos2);
+                            $total=0;
+                            foreach($st_invoice as $st_i){
+                                if($st_i->st_i_no==$emp->st_no && $emp->st_i_attachment==$ST->st_p_reference_no){
+                                    $total=$total+$st_i->st_i_total;
+                                }
+                            }
+                            $sheet->setCellValue('J'.$cuss, number_format($emp->st_balance,2));
+                            $sheet->setCellValue('K'.$cuss, number_format($total,2));
+                            $sheet->setCellValue('L'.$cuss, $emp->st_status);
+                            $sheet->setCellValue('M'.$cuss, $emp->remark);
+                        }
+                    }
+                }
+            }
+        })->setFilename($title.' ('.date('m-d-Y').")")->download('xlsx');
+    }
+    public function export_monthly_expense(Request $request){
+        $FROM=$request->FROM;
+        Excel::load('extra/edit_excel/export_bill.xlsx', function($doc) use($request) {
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingex="WHERE et_date BETWEEN '".$FROM."' AND '".$TO."' AND et_type='Bill'";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+                $sortsettingex="WHERE et_type='Bill'";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingex="WHERE et_type='Bill'";
+                    $sortsettingjournal="";
+                }
+            }
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+            ".$sortjournal." 
+            ORDER BY created_at ASC");
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+            $expense_transactions= DB::connection('mysql')->select("SELECT * FROM expense_transactions
+                                JOIN customers ON expense_transactions.et_customer=customers.customer_id
+                                JOIN et_account_details ON expense_transactions.et_no=et_account_details.et_ad_no
+                                ".$sortsettingex." 
+                                ORDER BY et_no ASC");
+                    $COA= DB::connection('mysql')->select("SELECT * FROM chart_of_accounts WHERE coa_active='1' ORDER BY coa_code+0 ASC");
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $tablecontent="";
+            $PaymentFor="";
+            $sheet = $doc->setActiveSheetIndex(0);
+            $cuss=3;
+
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                if($CostCenterFilter=="All"){
+                    foreach($expense_transactions as $et){
+                        if($et->remark!="Cancelled"){
+                            $cuss++;
+                            $sheet->setCellValue('B'.$cuss, $et->et_date!=""?date('m-d-Y',strtotime($et->et_date)) : '');
+                            $sheet->setCellValue('C'.$cuss, $et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name);
+                            $sheet->setCellValue('D'.$cuss, $et->tin_no);
+                            $sheet->setCellValue('E'.$cuss, "");
+                            $sheet->setCellValue('F'.$cuss, $et->et_ad_desc);
+                            $sheet->setCellValue('G'.$cuss, "PHP ".number_format($et->et_ad_total,2));
+                        }
+                    }
+                }else if($CostCenterFilter=="By Cost Center"){
+                    //none?
+                }
+            }else{
+                foreach($cost_center_list as $ccl){
+                    if($ccl->cc_no==$CostCenterFilter){
+                        $sheet->setCellValue('B2', $ccl->cc_name );
+                        
+                    }
+                }
+                foreach($expense_transactions as $et){
+                
+                    if($et->remark!="Cancelled"){
+                        foreach($JournalEntry as $JJJJ){
+                            if($JJJJ->je_cost_center==$CostCenterFilter){
+                                if($JJJJ->other_no==$et->et_no && ($JJJJ->je_transaction_type=="Expense" || $JJJJ->je_transaction_type=="Bill" || $JJJJ->je_transaction_type=="Cheque" || $JJJJ->je_transaction_type=="Supplier Credit" || $JJJJ->je_transaction_type=="Credit card credit") && $JJJJ->je_credit!=""){
+                                    $cuss++;
+                                    $sheet->setCellValue('B'.$cuss, $et->et_date!=""?date('m-d-Y',strtotime($et->et_date)) : '');
+                                    $sheet->setCellValue('C'.$cuss, $et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name);
+                                    $sheet->setCellValue('D'.$cuss, $et->tin_no);
+                                    $sheet->setCellValue('E'.$cuss, "");
+                                    $sheet->setCellValue('F'.$cuss, $et->et_ad_desc);
+                                    $sheet->setCellValue('G'.$cuss, "PHP ".number_format($et->et_ad_total,2));
+                                }
+                            }
                         }
                     }
                 }
                 
-
             }
-            
-        }
-        return $totaldeposited;
-    }
-    public function add_customer_supplier(Request $request){
-        // $DisplayNameCustomerSupplier=$request->DisplayNameCustomerSupplier;
-        // $CustomerSupplierType=$request->CustomerSupplierType;
-        // $customer = new Customers;
-        // $customer->customer_id = Customers::count() + 1;
-        // $customer->display_name = $DisplayNameCustomerSupplier;
-        // $customer->account_type = $CustomerSupplierType;
-        // $customer->save();
 
-        //     $AuditLog= new AuditLog;
-        //     $AuditLogcount=AuditLog::count()+1;
-        //     $userid = Auth::user()->id;
-        //     $username = Auth::user()->name;
-        //     $eventlog="Added Customer";
-        //     $AuditLog->log_id=$AuditLogcount;
-        //     $AuditLog->log_user_id=$username;
-        //     $AuditLog->log_event=$eventlog;
-        //     $AuditLog->log_name="";
-        //     $AuditLog->log_transaction_date="";
-        //     $AuditLog->log_amount="";
-        //     $AuditLog->save();
-        $customer=Customers::all();
-        return $customer;
-    }
-    public function add_customer(Request $request)
-    {
-        $customer = new Customers;
-        $customer->customer_id = Customers::count() + 1;
-        $customer->f_name = $request->f_name;
-        $customer->l_name = $request->l_name;
-        $customer->email = $request->email;
-        $customer->company = $request->company;
-        $customer->phone = $request->phone;
-        $customer->mobile = $request->mobile;
-        $customer->fax = $request->fax;
-        $customer->display_name = $request->display_name;
-        $customer->other = $request->other;
-        $customer->website = $request->website;
-        $customer->street = $request->street;
-        $customer->city = $request->city;
-        $customer->state = $request->state;
-        $customer->postal_code = $request->postal_code;
-        $customer->country = $request->country;
-        $customer->payment_method = $request->payment_method;
-        $customer->terms = $request->terms;
-        $customer->opening_balance = $request->opening_balance;
-        $customer->as_of_date = $request->as_of_date;
-        $customer->account_no = $request->account_no;
-        $customer->business_id_no = $request->business_id_no;
-        $customer->notes = $request->notes;
-        $customer->attachment = $request->attachment;
-        $customer->tin_no=$request->tin_no;
-        $customer->withhold_tax=$request->withholdingtax;
-        $customer->business_style=$request->business_style;
-        $customer->save();
-
-        $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Customer";
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name="";
-            $AuditLog->log_transaction_date="";
-            $AuditLog->log_amount="";
-            $AuditLog->save(); 
-    }
-    public function add_invoice_journal(Request $request){
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::count()+ExpenseTransaction::count() + $numbering->sales_exp_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
-        $sales_transaction->st_date = $request->date;
-        $sales_transaction->st_type = $request->transaction_type;
-        $sales_transaction->st_term = $request->term;
-        $sales_transaction->st_customer_id = $request->customer;
-        $sales_transaction->st_due_date = $request->due_date;
-        $sales_transaction->st_status = 'Open';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->email;
-        $sales_transaction->st_send_later = $request->send_later;
-        $sales_transaction->st_bill_address = $request->bill_address;
-        $sales_transaction->st_note = $request->note;
-        $sales_transaction->st_memo = $request->memo;
-        $sales_transaction->st_i_attachment = $request->attachment;
-        $sales_transaction->st_balance = $request->total_balance;
-        $sales_transaction->save();
-
-        $customer = new Customers;
-        $customer = Customers::find($request->customer);
-        $value;
-        for($x=0;$x<$request->product_count_journal;$x++){
-            $st_invoice = new StInvoice;
-            $st_invoice->st_i_no = $sales_number;
-            $st_invoice->st_i_product = $request->input('select_product_name_journal'.$x);
-            $st_invoice->st_i_desc = $request->input('select_product_description_journal'.$x);
-            $st_invoice->st_i_qty = $request->input('product_qty_journal'.$x);
-           
-            $st_invoice->st_i_rate =  preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_journal'.$x));
-            $st_invoice->st_i_total = $request->input('product_qty_journal'.$x) *  preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_journal'.$x));
-            $st_invoice->st_p_method = null;
-            $st_invoice->st_p_reference_no = null;
-            $st_invoice->st_p_deposit_to = null;
-            $st_invoice->save();
-
-            $product = ProductsAndServices::find($request->input('select_product_name_journal'.$x));
-            $email_array = explode(',', $request->email);
-
-            $value[$x] = [
-                'type' => 'Invoice',
-                'name' => $customer->display_name,
-                'email' => $email_array,
-                'title' => 'INVOICE',
-                'note' => $request->note,
-                'memo' => $request->memo,
-                'product_name' => !empty($product)? $product->product_name : '',
-                'product_description' => $request->input('select_product_description_journal'.$x),
-                'product_quantity' =>  preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_journal'.$x)),
-                'product_rate' => $request->input('select_product_rate'.$x),
-                'product_total' =>  preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_journal'.$x)) * $request->input('select_product_rate'.$x),
-                'credit_total' => $request->total_balance,
-            ];
-
-
-            $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * $request->input('select_product_rate'.$x);
-            $customer->save();
-        }
-        if($request->send_later=="on"){
-            Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-            {
-                $company = Company::first();
-                $sales = Sales::first();
-                $expenses = Expenses::first();
-                $advance = Advance::first();
-                
-                $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                $attachment = $pdf->stream('credit_notice.pdf');
-                $message->attachData($attachment, 'credit_note.pdf');
-    
-                $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Invoice for '.$value[0]['name']);
-                $message->from('floydignified@gmail.com','Floyd Matabilas');
-            });
-        }
-        if($request->generate_file_invoice_journal=="on"){
-            set_time_limit(0);
-            $company = Company::first();
-            $sales = Sales::first();
-            $expenses = Expenses::first();
-            $advance = Advance::first();
-            $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-            return $pdf->download('Invoice.pdf');
-        }
-
-        if($request->sales_transaction_number_estimate != '0'){
-            $sales_transaction_estimate = SalesTransaction::where('st_no', $request->sales_transaction_number_estimate)->first();
-            $sales_transaction_estimate->st_status = "Closed";
-            $sales_transaction_estimate->save();
-        }
-
-        if($request->sales_transaction_number_delayed_charge != '0'){
-            $sales_transaction_delayed_charge = SalesTransaction::where('st_no', $request->sales_transaction_number_delayed_charge)->first();
-            $sales_transaction_delayed_charge->st_status = "Closed";
-            $sales_transaction_delayed_charge->save();
-        }
-
-        if($request->sales_transaction_number_delayed_credit != '0'){
-            $sales_transaction_delayed_credit = SalesTransaction::where('st_no', $request->sales_transaction_number_delayed_credit)->first();
-            $sales_transaction_delayed_credit->st_status = "Closed";
-            $sales_transaction_delayed_credit->save();
-        }
-
-
-
-        $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Invoice No. ".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->date;
-            $AuditLog->log_amount=$request->total_balance;
-            $AuditLog->save();
-        return $sales_number;
-
-    }
-    public function set_journal_entry(Request $request){
-        $ID=$request->id;
-        $st_invoice = StInvoice::where('st_i_no',$ID)->get();
-        return $st_invoice;
-    }
-    public function set_journal_entry_from_voucher(Request $request){
-        $ID=$request->id;
-        //$Voucher = Voucher::where('st_i_no',$ID)->get();
-        $Voucherjournal_entry = DB::table('voucher_journal_entry')
-           
-            ->where('voucher_ref_no',$request->id)
-            ->get();
         
-        return $Voucherjournal_entry; 
-    }
-    public function findInvoiceNo(Request $request){
         
-        $st_invoice = StInvoice::where([
-            ['st_i_no','=',$request->value],
-            ['st_p_location', '=', $request->location_invoice],
-            ['st_p_invoice_type','=',$request->type_invoice],
-            ['st_i_item_no','=',$request->invoice_item_no]
-        ])->get();
-        return $st_invoice;
-    }
-    public function findInvoiceNoCu(Request $request){
-        $st_invoice = SalesTransaction::where([
-            ['st_no','=',$request->value],
-            ['st_type','=',"Invoice"],
-            ['st_location', '=', $request->location_invoice],
-            ['st_invoice_type','=',$request->type_invoice]
-        ])->get();
-        return $st_invoice;
-    }
-    public function add_invoice(Request $request)
-    {	
         
-		$sss=explode(" - ",$request->customer);
-		
-		
-        $numbering = Numbering::first();
-        $sales_number=0;
-        if($request->invoice_location_top=="Main"){
-            if($request->invoice_type_top=="Sales Invoice"){
-                $sales_number = SalesTransaction::where([
-                    ['st_type','=','Invoice'],
-                    ['st_location', '=', 'Main'],
-                    ['st_invoice_type','=','Sales Invoice']
-                ])->count() + $numbering->sales_exp_start_no;
-            }else if($request->invoice_type_top=="Bill Invoice"){
-                $sales_number = SalesTransaction::where([
-                    ['st_type','=','Invoice'],
-                    ['st_location', '=', 'Main'],
-                    ['st_invoice_type','=','Bill Invoice']
-                ])->count() + $numbering->numbering_bill_invoice_main;
+        })->setFilename('Monthly Expense Report ('.date('m-Y',strtotime($FROM)).")")->download('xlsx');
+    }
+    public function export_monthly_invoice(Request $request){
+        $FROM=$request->FROM;
+        Excel::load('extra/edit_excel/export_invoice.xlsx', function($doc) use($request) {
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."' AND st_type='Invoice' AND (st_status='PAID' OR st_status='Partially Paid')";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="WHERE st_type='Invoice' AND (st_status='PAID' OR st_status='Partially Paid')";
+                $sortsettingjournal="";
             }
-        }else if($request->invoice_location_top=="Branch"){
-            if($request->invoice_type_top=="Sales Invoice"){
-                $sales_number = SalesTransaction::where([
-                    ['st_type','=','Invoice'],
-                    ['st_location', '=', 'Branch'],
-                    ['st_invoice_type','=','Sales Invoice']
-                ])->count() + $numbering->numbering_sales_invoice_branch;
-            }else if($request->invoice_type_top=="Bill Invoice"){
-                $sales_number = SalesTransaction::where([
-                    ['st_type','=','Invoice'],
-                    ['st_location', '=', 'Branch'],
-                    ['st_invoice_type','=','Bill Invoice']
-                ])->count() + $numbering->numbering_bill_invoice_branch;
-            }
-        }
-        
-
-        
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $request->invoice_invoiceno;
-        $sales_transaction->st_date = $request->date;
-        $sales_transaction->st_type = $request->transaction_type;
-        $sales_transaction->st_term = $request->term;
-        $sales_transaction->st_customer_id = $sss[0];
-        $sales_transaction->st_due_date = $request->due_date;
-        $sales_transaction->st_status = 'Open';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->email;
-        $sales_transaction->st_send_later = $request->send_later;
-        $sales_transaction->st_bill_address = $request->bill_address;
-        $sales_transaction->st_note = $request->note;
-        $sales_transaction->st_memo = $request->memo;
-        $sales_transaction->st_i_attachment = $request->attachment;
-        $sales_transaction->st_balance = $request->total_balance;
-        $sales_transaction->st_invoice_job_order = $request->job_order_invoice;
-        $sales_transaction->st_invoice_work_no = $request->work_no_invoice;
-        $sales_transaction->st_debit_account = "";
-        $sales_transaction->st_credit_account = "";
-        
-        $sales_transaction->st_location = $request->invoice_location_top;
-        $sales_transaction->st_invoice_type = $request->invoice_type_top;
-        $sales_transaction->save();
-
-        $customer = new Customers;
-        $customer = Customers::find($sss[0]);
-        $customer_name="";
-            if ($customer->display_name!=""){
-                $customer_name=$customer->display_name;
+            if($sortsettingjournal==""){
+                $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
             }else{
-                if ($customer->company_name!=""){
-                    $customer_name=$customer->company_name;
-                }else{
-                    $customer_name=$customer->f_name." ".$customer->l_name;
+                $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND (st_status='PAID' OR st_status='Partially Paid')";
+                if($filtertemplate=="All"){
+                    $sortsetting="WHERE st_type='Invoice' AND (st_status='PAID' OR st_status='Partially Paid')";
+                    $sortsettingjournal="";
                 }
             }
-        $value;
-        for($x=0;$x<$request->product_count;$x++){
-            $x2=$x+1;
-            $st_invoice = new StInvoice;
-            $st_invoice->st_i_no = $request->invoice_invoiceno;
-            $st_invoice->st_i_item_no = $x2;
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortjournal." 
+                                ORDER BY created_at ASC");
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $st_credit_notes= DB::connection('mysql')->select("SELECT * FROM st_credit_notes");
+            $st_estimates= DB::connection('mysql')->select("SELECT * FROM st_estimates");
+            $st_delayed_charges= DB::connection('mysql')->select("SELECT * FROM st_delayed_charges");
+            $st_delayed_credit= DB::connection('mysql')->select("SELECT * FROM st_delayed_credits");
+            $st_refund_receipts= DB::connection('mysql')->select("SELECT * FROM st_refund_receipts");
+            $st_sales_receipts= DB::connection('mysql')->select("SELECT * FROM st_sales_receipts");
+            $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+            $COA= DB::connection('mysql')->select("SELECT * FROM chart_of_accounts WHERE coa_active='1' ORDER BY coa_code+0 ASC");
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $sheet = $doc->setActiveSheetIndex(0);
             
-            $st_invoice->st_i_product = $request->input('select_product_name'.$x);
-            $st_invoice->st_i_desc = $request->input('select_product_description'.$x);
-            $st_invoice->st_i_qty = $request->input('product_qty'.$x);
-            $st_invoice->st_i_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
-            $st_invoice->st_i_total = $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
-            $st_invoice->st_p_method = null;
-            $st_invoice->st_p_reference_no = null;
-            $st_invoice->st_p_deposit_to = null;
-            $st_invoice->st_p_location = $request->invoice_location_top;
-            $st_invoice->st_p_invoice_type = $request->invoice_type_top;
-            $wwe=explode(" - ",$request->input('CostCenterInvoice'.$x2));
-            $st_invoice->st_p_cost_center=$wwe[0];
-            $st_invoice->st_p_debit = $request->input('invoice_account_debit_account'.$x2);
-            $st_invoice->st_p_credit = $request->input('invoice_account_credit_account'.$x2);
-            $st_invoice->save();
+            $cuss=3;
 
-            $JDate=$request->date;
-            $JNo=$request->invoice_invoiceno;
-            $JMemo=$request->memo;
-            $account=$request->input('invoice_account_debit_account'.$x2);
-            $debit= $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
-            $credit= "";
-            $description=$request->input('select_product_description'.$x);
-            $name= $customer_name;
-
-            $product = ProductsAndServices::find($request->input('select_product_name'.$x));
-            $email_array = explode(',', $request->email);
-
-            $value[$x] = [
-                'type' => 'Invoice',
-                'name' => $customer_name,
-                'email' => $email_array,
-                'title' => 'INVOICE',
-                'note' => $request->note,
-                'memo' => $request->memo,
-                'product_name' => !empty($product)? $product->product_name : '',
-                'product_description' => $request->input('select_product_description'.$x),
-                'product_quantity' => $request->input('product_qty'.$x),
-                'product_rate' => preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x)),
-                'product_total' => $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x)),
-                'credit_total' => $request->total_balance,
-            ];
-            $JournalVoucherCount=count(JournalEntry::where([
-                ['journal_type','=','Journal Voucher']
-            ])->groupBy('je_no')->get())+1;
-            $current_year=date('y');
-        
-            $journalvoucher_no_series="";
-            if($JournalVoucherCount<10){
-                $journalvoucher_no_series="000".$JournalVoucherCount;
-            }
-            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
-                $journalvoucher_no_series="00".$JournalVoucherCount;
-            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
-                $journalvoucher_no_series="0".$JournalVoucherCount;
-            }
-            
-            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
-            $journal_series_no="";
-            
-            $journal_series_no=$journalvoucher_no;
-            $journal_entries = new  JournalEntry;
-            $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-            $journal_entries->je_id = "1";
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Invoice";
-            $journal_entries->je_invoice_location_and_type=$request->invoice_location_top." ".$request->invoice_type_top;
-            $wwe=explode(" - ",$request->input('CostCenterInvoice'.$x2));
-            $journal_entries->je_cost_center=$wwe[0];
-            $journal_entries->journal_type="Journal Voucher";
-		    $journal_entries->je_series_no=$journal_series_no;
-            $journal_entries->save();
-
-            $JDate=$request->date;
-            $JNo=$request->invoice_invoiceno;
-            $JMemo=$request->memo;
-            $account=$request->input('invoice_account_credit_account'.$x2);
-            $debit= "";
-            $credit= $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
-            $description=$request->input('select_product_description'.$x);
-            $name= $customer_name;
-            
-
-            $journal_entries = new  JournalEntry;
-            
-            $journal_entries->je_id = "2";
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Invoice";
-            $journal_entries->je_invoice_location_and_type=$request->invoice_location_top." ".$request->invoice_type_top;
-			$wwe=explode(" - ",$request->input('CostCenterInvoice'.$x2));
-            $journal_entries->je_cost_center=$wwe[0];
-            $journal_entries->journal_type="Journal Voucher";
-		    $journal_entries->je_series_no=$journal_series_no;
-            $journal_entries->save();
-
-
-            $customer->opening_balance = $customer->opening_balance + $request->input('product_qty'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate'.$x));
-            $customer->save();
-
-
-        }
-
-        if($request->sales_transaction_number_estimate != '0'){
-            $sales_transaction_estimate = SalesTransaction::where('st_no', $request->sales_transaction_number_estimate)->first();
-            $sales_transaction_estimate->st_status = "Closed";
-            $sales_transaction_estimate->save();
-        }
-
-        if($request->sales_transaction_number_delayed_charge != '0'){
-            $sales_transaction_delayed_charge = SalesTransaction::where('st_no', $request->sales_transaction_number_delayed_charge)->first();
-            $sales_transaction_delayed_charge->st_status = "Closed";
-            $sales_transaction_delayed_charge->save();
-        }
-
-        if($request->sales_transaction_number_delayed_credit != '0'){
-            $sales_transaction_delayed_credit = SalesTransaction::where('st_no', $request->sales_transaction_number_delayed_credit)->first();
-            $sales_transaction_delayed_credit->st_status = "Closed";
-            $sales_transaction_delayed_credit->save();
-        }
-
-
-
-        $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Invoice No. ".$request->invoice_invoiceno;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->date;
-            $AuditLog->log_amount=$request->total_balance;
-            $AuditLog->save(); 
-            
-        if($request->send_later=="yes"){
-            Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-            {
-                $company = Company::first();
-                $sales = Sales::first();
-                $expenses = Expenses::first();
-                $advance = Advance::first();
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                if($CostCenterFilter=="All"){
+                    foreach ($SalesTransaction as $ST){
+                        if($ST->remark!="Cancelled"){
+                            $cuss++;
+                            $payment_for_id=$ST->st_no;
+                            $st_location=$ST->st_location;
+                            $st_invoice_type=$ST->st_invoice_type;
+                            $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' ND st_invoice_type='$st_invoice_type'");
+                            $sheet->setCellValue('B'.$cuss, $ST->created_at!=""?date('m-d-Y',strtotime($ST->created_at)) : '');
+                            $sheet->setCellValue('C'.$cuss, $ST->display_name!=""? $ST->display_name : $ST->f_name." ".$ST->l_name);
+                            $sheet->setCellValue('D'.$cuss, $ST->tin_no);
+                            $sr_nos="";
+                            $sr_nos2="";
+                            if($ST->cancellation_reason==NULL){
+                                foreach($sales_receipts as $sal){
+                                    if($sr_nos!=''){
+                                        $sr_nos.=", ".$sal->st_no;
+                                    }else{
+                                        $sr_nos.=$sal->st_no;
+                                    }
+                                    if($sr_nos2!=''){
+                                        $sr_nos2.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }else{
+                                        $sr_nos2.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('E'.$cuss, $sr_nos);
+                            $sheet->setCellValue('F'.$cuss, $sr_nos2);
+                            $sheet->setCellValue('G'.$cuss, $ST->st_no);
+                            $sheet->setCellValue('H'.$cuss, $ST->st_date!=""?date('m-d-Y',strtotime($ST->st_date)) : '');
+                            if($ST->st_type == "Invoice"){
+                                $invoice_total=0;
+                                foreach ($st_invoice as $invoice){
+                                    if($ST->st_no==$invoice->st_i_no && $ST->st_location==$invoice->st_p_location && $ST->st_invoice_type==$invoice->st_p_invoice_type && $ST->st_i_attachment==$invoice->st_p_reference_no){
+                                        $invoice_total=$invoice_total+$invoice->st_i_total;
                 
-                $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                $attachment = $pdf->stream('credit_notice.pdf');
-                $message->attachData($attachment, 'Invoice.pdf');
-    
-                $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Invoice for '.$value[0]['name']);
-                $message->from('floydignified@gmail.com','Floyd Matabilas');
-            });
-            
-        }
-        if($request->generate_file_invoice=="on"){
-            set_time_limit(0);
-            $company = Company::first();
-            $sales = Sales::first();
-            $expenses = Expenses::first();
-            $advance = Advance::first();
-            $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-            return $pdf->download('Invoice.pdf');
-        }
-        
-    }
-
-    public function add_payment(Request $request){
-
-        $customer = Customers::find($request->payment_customer_id);
-        $customer->opening_balance = $customer->opening_balance - $request->p_amount;
-        $customer->save();
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::count()+ExpenseTransaction::count() + $numbering->sales_exp_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
-        $sales_transaction->st_date = $request->p_date;
-        $sales_transaction->st_type = 'Payment';
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $request->payment_customer_id;
-        $sales_transaction->st_due_date = null;
-        $sales_transaction->st_status = 'Closed';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->p_email;
-        $sales_transaction->st_send_later = $request->p_send_later;
-        $sales_transaction->st_bill_address = null;
-        $sales_transaction->st_note = null;
-        $sales_transaction->st_memo = $request->p_memo;
-        $sales_transaction->st_i_attachment = $request->p_attachment;
-        $sales_transaction->st_amount_paid = $request->p_amount;
-        $sales_transaction->st_payment_for = $request->sales_transaction_number;
-        $sales_transaction->save();
-
-        $st_invoice = new StInvoice;
-        $st_invoice = StInvoice::where('st_i_no', $request->sales_transaction_number)->first();
-        $st_invoice->st_p_method = $request->p_payment_method;
-        $st_invoice->st_p_reference_no = $request->p_reference_no;
-        $st_invoice->st_p_deposit_to = $request->p_deposit_to;
-        $st_invoice->st_p_amount = $request->p_amount;
-        $st_invoice->save();
-
-        $JDate=$request->p_date;
-        $JNo=$sales_number;
-        $JMemo=$request->p_memo;
-        $account="1";
-        $debit= $request->p_amount;
-        $credit= "";
-        $description="";
-        $name="";
-
-        $journal_entries = new  JournalEntry;
-        $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-        
-        $journal_entries->je_id = "1";
-        $journal_entries->other_no=$JNo;
-        $journal_entries->je_no=$journal_entries_count;
-        $journal_entries->je_account=$account;
-        $journal_entries->je_debit=$debit;
-        $journal_entries->je_credit=$credit;
-        $journal_entries->je_desc=$description;
-        $journal_entries->je_name=$name;
-        $journal_entries->je_memo=$JMemo;
-        $journal_entries->created_at=$JDate;
-        $journal_entries->je_attachment=$JDate;
-        $journal_entries->je_transaction_type="Payment";
-        $journal_entries->save();
-        
-        $JDate=$request->p_date;
-        $JNo=$sales_number;
-        $JMemo=$request->p_memo;
-        $account="2";
-        $debit= "";
-        $credit= $request->p_amount;
-        $description="";
-        $name="";
-            
-
-        $journal_entries = new  JournalEntry;
-        
-        $journal_entries->je_id = "2";
-        $journal_entries->other_no=$JNo;
-        $journal_entries->je_no=$journal_entries_count;
-        $journal_entries->je_account=$account;
-        $journal_entries->je_debit=$debit;
-        $journal_entries->je_credit=$credit;
-        $journal_entries->je_desc=$description;
-        $journal_entries->je_name=$name;
-        $journal_entries->je_memo=$JMemo;
-        $journal_entries->created_at=$JDate;
-        $journal_entries->je_attachment=$JDate;
-        $journal_entries->je_transaction_type="Payment";
-        $journal_entries->save();
-
-        $old_invoice_transaction = SalesTransaction::find($request->sales_transaction_number);
-        if($old_invoice_transaction->st_balance <= $request->p_amount){
-            $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->p_amount;
-            $old_invoice_transaction->st_status = 'Paid';
-            $old_invoice_transaction->save();
-        }else{
-            $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->p_amount;
-            $old_invoice_transaction->st_status = 'Partially paid';
-            $old_invoice_transaction->save();
-        }
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Payment";
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->p_date;
-            $AuditLog->log_amount=$request->p_amount;
-            $AuditLog->save();
-
-    }
-
-    public function add_estimate(Request $request)
-    {
-        $sss=explode(" - ",$request->e_customer);
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::where('st_type','Estimate')->count() + $numbering->estimate_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $request->estimate_no;
-        $sales_transaction->st_date = $request->e_date;
-        $sales_transaction->st_type = $request->transaction_type_estimate;
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $sss[0];
-        $sales_transaction->st_due_date = $request->e_due_date;
-        $sales_transaction->st_status = 'Pending';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->e_email;
-        $sales_transaction->st_send_later = $request->e_send_later;
-        $sales_transaction->st_bill_address = $request->e_bill_address;
-        $sales_transaction->st_note = $request->e_note;
-        $sales_transaction->st_memo = $request->e_memo;
-        $sales_transaction->st_i_attachment = $request->e_attachment;
-        $sales_transaction->st_balance = $request->total_balance_estimate;
-        $sales_transaction->save();
-
-        $value;
-       
-        $customer = Customers::find($sss[0]);
-        for($x=0;$x<$request->product_count_estimate;$x++){
-            $st_estimate = new StEstimate;
-            $st_estimate->st_e_no = $request->estimate_no;
-            $st_estimate->st_e_product = $request->input('select_product_name_estimate'.$x);
-            $st_estimate->st_e_desc = $request->input('select_product_description_estimate'.$x);
-            $st_estimate->st_e_qty = $request->input('product_qty_estimate'.$x);
-            
-            $st_estimate->st_e_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_estimate'.$x));
-            $st_estimate->st_e_total = $request->input('product_qty_estimate'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_estimate'.$x));
-            $st_estimate->st_p_method = null;
-            $st_estimate->st_p_reference_no = null;
-            $st_estimate->st_p_deposit_to = null;
-            $st_estimate->save();
-
-            $product = ProductsAndServices::find($request->input('select_product_name_estimate'.$x));
-            $email_array = explode(',', $request->e_email);
-            $value[$x] = [
-                'type' => 'Estimate',
-                'name' => $customer->display_name,
-                'email' => $email_array,
-                'title' => 'ESTIMATE',
-                'note' => $request->e_note,
-                'memo' => $request->e_memo,
-                'product_name' => !empty($product)? $product->product_name : '',
-                'product_description' => $request->input('select_product_description_estimate'.$x),
-                'product_quantity' => $request->input('product_qty_estimate'.$x),
-                'product_rate' => preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_estimate'.$x)),
-                'product_total' => $request->input('product_qty_estimate'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_estimate'.$x)),
-                'credit_total' => $request->total_balance_estimate,
-            ];
-            
-        }
-        if($request->e_send_later=="on"){
-            Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-            {
-                $company = Company::first();
-                $sales = Sales::first();
-                $expenses = Expenses::first();
-                $advance = Advance::first();
+                                    }
                 
-                $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                $attachment = $pdf->stream('credit_notice.pdf');
-                $message->attachData($attachment, 'credit_note.pdf');
-    
-                $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Estimate for '.$value[0]['name']);
-                $message->from('floydignified@gmail.com','Floyd Matabilas');
-            });
-        } 
-            $customer = Customers::find($sss[0]);
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Estimate";
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->e_date;
-            $AuditLog->log_amount=$request->total_balance_estimate;
-            $AuditLog->save();
-    }
-
-    public function add_sales_receipt(Request $request)
-    {
-        
-        
-        
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::where('st_type','Sales Receipt')->count() + $numbering->sales_receipt_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $request->sales_receipt_no;
-        $sales_transaction->st_date = $request->sr_date;
-        $sales_transaction->st_type = $request->transaction_type_sales_receipt;
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $request->sr_customer;
-        $sales_transaction->st_due_date = null;
-        $sales_transaction->st_status = 'Closed';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->invoice_item_no;
-        $sales_transaction->st_send_later = $request->sr_send_later;
-        $sales_transaction->st_bill_address = $request->sr_bill_address;
-        $sales_transaction->st_note = $request->sr_message;
-        $sales_transaction->st_memo = $request->sr_memo;
-        $sales_transaction->st_i_attachment = $request->sr_attachment;
-        $sales_transaction->st_balance = 0;
-        $sales_transaction->st_amount_paid = $request->hiddentotaldebitamountsalesreceipt;
-        $sales_transaction->st_location = $request->sales_receipt_location_top;
-        $sales_transaction->st_invoice_type = $request->sales_receipt_type_top;
-        $sales_transaction->st_payment_for = $request->invoiceno_sr;
-        
-        $sales_transaction->save();
-
-        $old_invoice_transaction = SalesTransaction::where([
-            ['st_no','=',$request->invoiceno_sr],
-            ['st_type','=',"Invoice"],
-            ['st_location','=',$request->sales_receipt_location_top],
-            ['st_invoice_type','=',$request->sales_receipt_type_top],
-        ])->first();
-        
-            if($old_invoice_transaction->st_balance <= $request->hiddentotaldebitamountsalesreceipt){
-                $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->hiddentotaldebitamountsalesreceipt;
-                $old_invoice_transaction->st_status = 'Paid';
-                $old_invoice_transaction->save();
-            }else{
-                $old_invoice_transaction->st_balance = $old_invoice_transaction->st_balance - $request->hiddentotaldebitamountsalesreceipt;
-                $old_invoice_transaction->st_status = 'Partially paid';
-                $old_invoice_transaction->save();
-            }
-        $st_invoice_item = StInvoice::where([
-            ['st_i_no','=',$request->invoiceno_sr],
-            ['st_i_item_no','=',$request->invoice_item_no],
-            ['st_p_location','=',$request->sales_receipt_location_top],
-            ['st_p_invoice_type','=',$request->sales_receipt_type_top],
-        ])->first();
-        $st_invoice_item->st_p_amount=$st_invoice_item->st_p_amount+$request->hiddentotaldebitamountsalesreceipt;
-        $st_invoice_item->save();
-
-        $customer = new Customers;
-        $customer = Customers::find($request->sr_customer);
-        $customer = Customers::find($request->sr_customer);
-        $customer->opening_balance = $customer->opening_balance -$request->hiddentotaldebitamountsalesreceipt;
-        $customer->save();
-        $AuditLog= new AuditLog;
-        $AuditLogcount=AuditLog::count()+1;
-        $userid = Auth::user()->id;
-        $username = Auth::user()->name;
-        $eventlog="Added Sales Receipt No.".$request->sales_receipt_no;
-        $AuditLog->log_id=$AuditLogcount;
-        $AuditLog->log_user_id=$username;
-        $AuditLog->log_event=$eventlog;
-        if($customer->display_name!=""){
-            $AuditLog->log_name=$customer->display_name;
-        }else{
-            if($customer->company_name!=""){
-                $AuditLog->log_name=$customer->company_name;
-            }else{
-                $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            }
-        }
-        
-        $AuditLog->log_transaction_date=$request->sr_date;
-        $AuditLog->log_amount=$request->hiddentotaldebitamountsalesreceipt;
-        $AuditLog->save();
-        if($request->reload_sr=='0'){
-            $JDate=$request->sr_date;
-            $JNo=$request->sales_receipt_no;
-            $JMemo=$request->sr_memo;
-            $account=$request->sales_receipt_account_debit_account;
-            $debit= $request->sr_amount_paid!=0? $request->sr_amount_paid : '';
-            $credit= $request->amountreceived_sr_c!=0? $request->amountreceived_sr_c : '';
-            $description="";
-            if($customer->display_name!=""){
-                $name= $customer->display_name;
-            }else{
-                if($customer->company_name!=""){
-                    $name= $customer->company_name;
-                }else{
-                    $name= $customer->f_name." ".$customer->l_name;
+                                }
+                                $sheet->setCellValue('I'.$cuss, number_format($invoice_total,2));
+                            }
+                            
+                        }
+                    }
+                }else if($CostCenterFilter=="By Cost Center"){
+                    //none?
                 }
-            }
-            $JournalVoucherCount=count(JournalEntry::where([
-                ['journal_type','=','Journal Voucher']
-            ])->groupBy('je_no')->get())+1;
-            $current_year=date('y');
-        
-            $journalvoucher_no_series="";
-            if($JournalVoucherCount<10){
-                $journalvoucher_no_series="000".$JournalVoucherCount;
-            }
-            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
-                $journalvoucher_no_series="00".$JournalVoucherCount;
-            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
-                $journalvoucher_no_series="0".$JournalVoucherCount;
-            }
-            
-            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
-            $journal_series_no="";
-            
-            $journal_series_no=$journalvoucher_no;
-            
-
-            $journal_entries = new  JournalEntry;
-            $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-            $journal_entries->je_id = "1";
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Sales Receipt";
-            $journal_entries->je_cost_center=$request->CostCenterSalesReceipt;
-            $journal_entries->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
-            $journal_entries->journal_type="Journal Voucher";
-		    $journal_entries->je_series_no=$journal_series_no;
-            $journal_entries->save();
-
-            for($c=1;$c<=$request->additional_count_cash_account;$c++){
-                $account=$request->input('additionalcashDebitAccount'.$c);
-                $debit=$request->input('additionalCashAmount'.$c)!=0? $request->input('additionalCashAmount'.$c) : '';
-                $credit=$request->input('additionalCashAmount_c'.$c)!=0? $request->input('additionalCashAmount_c'.$c): '';
-                if($customer->display_name!=""){
-                    $name= $customer->display_name;
-                }else{
-                    if($customer->company_name!=""){
-                        $name= $customer->company_name;
-                    }else{
-                        $name= $customer->f_name." ".$customer->l_name;
+            }else{
+                foreach($cost_center_list as $ccl){
+                    if($ccl->cc_no==$CostCenterFilter){
+                        $sheet->setCellValue('B2', $ccl->cc_name );
+                        
                     }
                 }
-                $data = new  JournalEntry;
-                $data->je_id = $c+1;
-                $data->other_no=$JNo;
-                $data->je_no=$journal_entries_count;
-                $data->je_account=$account;
-                $data->je_debit=$debit;
-                $data->je_credit=$credit;
-                $data->je_desc=$description;
-                $data->je_name=$name;
-                $data->je_memo=$JMemo;
-                $data->created_at=$JDate;
-                $data->je_attachment=$JDate;
-                $data->je_transaction_type="Sales Receipt";
-                $data->je_cost_center=$request->CostCenterSalesReceipt;
-                $data->je_invoice_location_and_type=$request->sales_receipt_location_top." ".$request->sales_receipt_type_top;
-                $journal_entries->journal_type="Journal Voucher";
-		        $journal_entries->je_series_no=$journal_series_no;
-                $data->save();
-            }
-            
-        }
-        
-        $value;
-        for($x=0;$x<$request->product_count_sales_receipt;$x++){
-            $st_sales_receipt = new StSalesReceipt;
-            $st_sales_receipt->st_s_no = $request->sales_receipt_no;
-            $st_sales_receipt->st_s_product = $request->input('select_product_name_sales_receipt'.$x);
-            $st_sales_receipt->st_s_desc = $request->input('select_product_description_sales_receipt'.$x);
-            $st_sales_receipt->st_s_qty = $request->input('product_qty_sales_receipt'.$x);
-            
-            $st_sales_receipt->st_s_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x));
-            $st_sales_receipt->st_s_total = $request->input('product_qty_sales_receipt'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x));
-            if($request->sr_payment_method=="Cash & Cheque"){
-                $st_sales_receipt->st_p_method = "Cash";
-            }else{
-                $st_sales_receipt->st_p_method = $request->sr_payment_method;
-            }
-            $st_sales_receipt->st_p_reference_no = $request->sr_reference_no;
-            $st_sales_receipt->st_p_deposit_to = $request->sr_deposit_to;
-            $st_sales_receipt->st_p_amount = $request->sr_amount_paid;
-            $st_sales_receipt->invoice_no_link = $request->invoiceno_sr;
-            $st_sales_receipt->save();
-
-            $product = ProductsAndServices::find($request->input('select_product_name_sales_receipt'.$x));
-            $email_array = explode(',', $request->sr_email);
-
-            $value[$x] = [
-                'type' => 'Sales Receipt',
-                'name' => $customer->display_name,
-                'email' => $email_array,
-                'title' => 'SALES RECEIPT',
-                'note' => $request->note,
-                'memo' => $request->memo,
-                'product_name' => !empty($product)? $product->product_name : '',
-                'product_description' => $request->input('select_product_description_sales_receipt'.$x),
-                'product_quantity' => $request->input('product_qty_sales_receipt'.$x),
-                'product_rate' => preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x)),
-                'product_total' => $request->input('product_qty_sales_receipt'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_sales_receipt'.$x)),
-                'credit_total' => $request->sr_amount_paid,
-            ];
-            
-            
-        }
-        if($request->send_later=="on"){
-            Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-            {
-                $company = Company::first();
-                $sales = Sales::first();
-                $expenses = Expenses::first();
-                $advance = Advance::first();
+                foreach ($SalesTransaction as $ST){
+                    if($ST->remark!="Cancelled"){
+                        $cuss++;
+                        $payment_for_id=$ST->st_no;
+                        $st_location=$ST->st_location;
+                        $st_invoice_type=$ST->st_invoice_type;
+                        $sales_receipts = DB::connection('mysql')->select("SELECT * FROM sales_transaction  WHERE st_type='Sales Receipt' AND st_payment_for='$payment_for_id' AND st_location='$st_location' AND st_invoice_type='$st_invoice_type'");
+                        $sheet->setCellValue('B'.$cuss, $ST->created_at!=""?date('m-d-Y',strtotime($ST->created_at)) : '');
+                        $sheet->setCellValue('C'.$cuss, $ST->display_name!=""? $ST->display_name : $ST->f_name." ".$ST->l_name);
+                        $sheet->setCellValue('D'.$cuss, $ST->tin_no);
+                        $sr_nos="";
+                        $sr_nos2="";
+                        if($ST->cancellation_reason==NULL){
+                            foreach($sales_receipts as $sal){
+                                if($sr_nos!=''){
+                                    $sr_nos.=", ".$sal->st_no;
+                                }else{
+                                    $sr_nos.=$sal->st_no;
+                                }
+                                if($sr_nos2!=''){
+                                    $sr_nos2.=", ".($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                }else{
+                                    $sr_nos2.=($sal->st_date!=""? date('m-d-Y',strtotime($sal->st_date)) : '');
+                                }
+                            }
+                        }
+                        
+                        $sheet->setCellValue('E'.$cuss, $sr_nos);
+                        $sheet->setCellValue('F'.$cuss, $sr_nos2);
+                        $sheet->setCellValue('G'.$cuss, $ST->st_no);
+                        $sheet->setCellValue('H'.$cuss, $ST->st_date!=""?date('m-d-Y',strtotime($ST->st_date)) : '');
+                        if($ST->st_type == "Invoice"){
+                            $invoice_total=0;
+                            foreach ($st_invoice as $invoice){
+                                if($ST->st_no==$invoice->st_i_no && $ST->st_location==$invoice->st_p_location && $ST->st_invoice_type==$invoice->st_p_invoice_type && $ST->st_i_attachment==$invoice->st_p_reference_no){
+                                    $invoice_total=$invoice_total+$invoice->st_i_total;
                 
-                $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                $attachment = $pdf->stream('credit_notice.pdf');
-                $message->attachData($attachment, 'credit_note.pdf');
-    
-                $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a Sales Receipt for '.$value[0]['name']);
-                $message->from('floydignified@gmail.com','Floyd Matabilas');
-            });
-        }
+                                }
+                
+                            }
+                            $sheet->setCellValue('I'.$cuss, number_format($invoice_total,2));
+                        }
+                        
+                    }
+                }
+                
+            }
+
         
-        DB::connection('mysql')
-        ->statement(
-            DB::raw('UPDATE sales_transaction SET `st_balance`=?, `st_status`=? WHERE st_type=?'),
-            array("0","Closed","Sales Receipt")
-        );
-        $asdassssssssssasd="";
+        
+        
+        })->setFilename('Monthly Invoice Collection Report ('.date('m-Y',strtotime($FROM)).")")->download('xlsx');
+    }
+    public function export_to_excel(Request $request){
+        
+        
+        Excel::load('extra/edit_excel/export_journal.xlsx', function($doc) use($request) {
+            $Journal_no_selected= $request->no;
+            $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+            $numbering = Numbering::first();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
+            $sheet = $doc->setActiveSheetIndex(0);
+             
+            $cuss=3;
             
-        return $asdassssssssssasd;
-           
+            foreach($JournalEntry as $je){
+                if($Journal_no_selected==$je->je_no){
+                    $cuss++;
+                    $sheet->setCellValue('B'.$cuss, date("m-d-Y", strtotime($je->created_at)));
+                    foreach ($COA as $coa){
+                        if($coa->id==$je->je_account){
+                            if(!empty($numbering) && $numbering->use_cost_center=="Off"){
+                                $sheet->setCellValue('C'.$cuss, $coa->coa_code);
+                            }else{
+                                if($je->je_cost_center!=""){
+                                    foreach ($cost_center_list as $list){
+                                        if($list->cc_no==$je->je_cost_center){
+                                            $sheet->setCellValue('C'.$cuss, $list->cc_name_code."-".$coa->coa_code);
+                                            break;
+                                        }
+                                    }
+                                }else{
+                                    $sheet->setCellValue('C'.$cuss, $coa->coa_code); 
+                                }
+                            }
+                        }
+                    }
+                    
+                    $sheet->setCellValue('D'.$cuss, $je->je_no);
+                    $journalaccount="";
+                    foreach ($COA as $coa){
+                        if($coa->id==$je->je_account){
+                            $journalaccount=$coa->coa_name;
+                            break;
+                        }
+                    }
+                    $sheet->setCellValue('E'.$cuss, is_numeric($je->je_account)==true? $journalaccount : $je->je_account);
+                    $sheet->setCellValue('F'.$cuss, $je->je_debit!=""? number_format($je->je_debit,2): "");
+                    $sheet->setCellValue('G'.$cuss, $je->je_credit!=""? number_format($je->je_credit,2) : "");
+                    $sheet->setCellValue('H'.$cuss, $je->je_desc);
+                    $sheet->setCellValue('I'.$cuss, $je->je_name);
+                    foreach ($customers as $item){
+                        if ($je->je_name!="" && $je->je_name!=null && $je->je_name!=" "){
+                            if ($item->display_name==$je->je_name ){
+                                if ($je->je_name!="" && $je->je_name!=null){
+                                    $sheet->setCellValue('J'.$cuss,$item->tin_no );
+                                    break;
+                                }
+                            }elseif($item->f_name." ".$item->l_name==$je->je_name){
+                                if ($je->je_name!="" && $je->je_name!=null){
+                                    $sheet->setCellValue('J'.$cuss,$item->tin_no );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+                
+                
+                
+            }
+            
+            })->setFilename('Journal '.$request->no." ".date('m-d-Y'))->download('xlsx');
+    }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //
     }
 
-    public function add_refund_receipt(Request $request)
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
     {
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::count()+ExpenseTransaction::count() + $numbering->sales_exp_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
-        $sales_transaction->st_date = $request->rr_date;
-        $sales_transaction->st_type = $request->transaction_type_refund_receipt;
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $request->rr_customer;
-        $sales_transaction->st_due_date = null;
-        $sales_transaction->st_status = 'Closed';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->rr_email;
-        $sales_transaction->st_send_later = $request->rr_send_later;
-        $sales_transaction->st_bill_address = $request->rr_bill_address;
-        $sales_transaction->st_note = $request->rr_message;
-        $sales_transaction->st_memo = $request->rr_memo;
-        $sales_transaction->st_i_attachment = $request->rr_attachment;
-        $sales_transaction->st_balance = 0;
-        $sales_transaction->save();
-
-        $customer = new Customers;
-        $customer = Customers::find($request->rr_customer);
-
-        for($x=0;$x<$request->product_count_refund_receipt;$x++){
-            $st_refund_receipt = new StRefundReceipt;
-            $st_refund_receipt->st_r_no = $sales_number;
-            $st_refund_receipt->st_r_product = $request->input('select_product_name_refund_receipt'.$x);
-            $st_refund_receipt->st_r_desc = $request->input('select_product_description_refund_receipt'.$x);
-            $st_refund_receipt->st_r_qty = $request->input('product_qty_refund_receipt'.$x);
-            $st_refund_receipt->st_r_rate = $request->input('select_product_rate_refund_receipt'.$x);
-            $st_refund_receipt->st_r_total = -$request->input('product_qty_refund_receipt'.$x) * $request->input('select_product_rate_refund_receipt'.$x);
-            $st_refund_receipt->st_p_method = $request->rr_payment_method;
-            $st_refund_receipt->st_p_reference_no = null;
-            $st_refund_receipt->st_p_deposit_to = $request->rr_refund_from;
-            $st_refund_receipt->st_p_amount = $request->rr_amount_refunded;
-            $st_refund_receipt->save();
-
-        }
-            $customer = Customers::find($request->rr_customer);
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Refund Receipt No.".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->rr_date;
-            $AuditLog->log_amount=$request->rr_amount_refunded;
-            $AuditLog->save();
+        //
     }
 
-
-    public function add_delayed_charge(Request $request)
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
     {
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::count()+ExpenseTransaction::count() + $numbering->sales_exp_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
-        $sales_transaction->st_date = $request->dc_date;
-        $sales_transaction->st_type = $request->transaction_type_delayed_charge;
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $request->dc_customer;
-        $sales_transaction->st_due_date = $request->dc_date;
-        $sales_transaction->st_status = 'Open';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = null;
-        $sales_transaction->st_send_later = null;
-        $sales_transaction->st_bill_address = null;
-        $sales_transaction->st_note = null;
-        $sales_transaction->st_memo = $request->dc_memo;
-        $sales_transaction->st_i_attachment = $request->dc_attachment;
-        $sales_transaction->st_balance = 0;
-        $sales_transaction->save();
-
-        $customer = new Customers;
-        $customer = Customers::find($request->dc_customer);
-
-        for($x=0;$x<$request->product_count_delayed_charge;$x++){
-            $st_delayed_charge = new StDelayedCharge;
-            $st_delayed_charge->st_dc_no = $sales_number;
-            $st_delayed_charge->st_dc_product = $request->input('select_product_name_delayed_charge'.$x);
-            $st_delayed_charge->st_dc_desc = $request->input('select_product_description_delayed_charge'.$x);
-            $st_delayed_charge->st_dc_qty = $request->input('product_qty_delayed_charge'.$x);
-            $st_delayed_charge->st_dc_rate = $request->input('select_product_rate_delayed_charge'.$x);
-            $st_delayed_charge->st_dc_total = $request->input('product_qty_delayed_charge'.$x) * $request->input('select_product_rate_delayed_charge'.$x);
-            $st_delayed_charge->st_p_method = null;
-            $st_delayed_charge->st_p_reference_no = null;
-            $st_delayed_charge->st_p_deposit_to = null;
-            $st_delayed_charge->st_p_amount = null;
-            $st_delayed_charge->save();
-
-        }
-            $customer = Customers::find($request->dc_customer);
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Delayed Charge No.".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->dc_date;
-            $AuditLog->log_amount="";
-            $AuditLog->save();
-    }
-
-    public function add_delayed_credit(Request $request)
-    {
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::count()+ExpenseTransaction::count() + $numbering->sales_exp_start_no;
-
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $sales_number;
-        $sales_transaction->st_date = $request->dcredit_date;
-        $sales_transaction->st_type = $request->transaction_type_delayed_credit;
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $request->dcredit_customer;
-        $sales_transaction->st_due_date = $request->dcredit_date;
-        $sales_transaction->st_status = 'Open';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = null;
-        $sales_transaction->st_send_later = null;
-        $sales_transaction->st_bill_address = null;
-        $sales_transaction->st_note = null;
-        $sales_transaction->st_memo = $request->dcredit_memo;
-        $sales_transaction->st_i_attachment = $request->dcredit_attachment;
-        $sales_transaction->st_balance = 0;
-        $sales_transaction->save();
-
-        $customer = new Customers;
-        $customer = Customers::find($request->dc_customer);
-
-        for($x=0;$x<$request->product_count_delayed_credit;$x++){
-            $st_delayed_credit = new StDelayedCredit;
-            $st_delayed_credit->st_dcredit_no = $sales_number;
-            $st_delayed_credit->st_dcredit_product = $request->input('select_product_name_delayed_credit'.$x);
-            $st_delayed_credit->st_dcredit_desc = $request->input('select_product_description_delayed_credit'.$x);
-            $st_delayed_credit->st_dcredit_qty = $request->input('product_qty_delayed_credit'.$x);
-            $st_delayed_credit->st_dcredit_rate = $request->input('select_product_rate_delayed_credit'.$x);
-            $st_delayed_credit->st_dcredit_total = -$request->input('product_qty_delayed_credit'.$x) * $request->input('select_product_rate_delayed_credit'.$x);
-            $st_delayed_credit->st_p_method = null;
-            $st_delayed_credit->st_p_reference_no = null;
-            $st_delayed_credit->st_p_deposit_to = null;
-            $st_delayed_credit->st_p_amount = null;
-            $st_delayed_credit->save();
-
-        }
-        $customer = Customers::find($request->dc_customer);
-            $AuditLog= new AuditLog;
-            $AuditLogcount=AuditLog::count()+1;
-            $userid = Auth::user()->id;
-            $username = Auth::user()->name;
-            $eventlog="Added Delayed Credit No.".$sales_number;
-            $AuditLog->log_id=$AuditLogcount;
-            $AuditLog->log_user_id=$username;
-            $AuditLog->log_event=$eventlog;
-            $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-            $AuditLog->log_transaction_date=$request->dcredit_date;
-            $AuditLog->log_amount="";
-            $AuditLog->save();
-    }
-
-    public function add_credit_note(Request $request)
-    {
-        $sss=explode(" - ",$request->cn_customer);
-        $numbering = Numbering::first();
-        $sales_number = SalesTransaction::where('st_type','Credit Note')->count() + $numbering->credit_note_start_no;
         
-        $sales_transaction = new SalesTransaction;
-        $sales_transaction->st_no = $request->credit_note_no;
-        $sales_transaction->st_date = $request->cn_date;
-        $sales_transaction->st_type = $request->transaction_type_credit_note;
-        $sales_transaction->st_term = null;
-        $sales_transaction->st_customer_id = $sss[0];
-        $sales_transaction->st_due_date = null;
-        $sales_transaction->st_status = 'Closed';
-        $sales_transaction->st_action = '';
-        $sales_transaction->st_email = $request->cn_email;
-        $sales_transaction->st_send_later = $request->cn_send_later;
-        $sales_transaction->st_bill_address = $request->cn_bill_address;
-        $sales_transaction->st_note = $request->cn_message;
-        $sales_transaction->st_memo = $request->cn_memo;
-        $sales_transaction->st_i_attachment = $request->cn_attachment;
-        $sales_transaction->st_amount_paid = -$request->total_balance_credit_note;
-        $sales_transaction->save();
-        $customer = Customers::find($sss[0]);
+        $on='0';
+        if($request->input('COASubAcc')=="on"){
+            $on='1';
+        }else{
+            $on='0';
+
+        }
+        //Create New Chart Of Account
+        $Chart= New ChartofAccount;
+        $Chart->id= ChartofAccount::count() + 1;
+        $cccdcd=ChartofAccount::count() + 1;
+        if($request->input('ACCType')=="Custom"){
+            $Chart->coa_account_type=$request->input('customaccounttype');
+            $Chart->coa_detail_type=$request->input('customdetailtyep');
+            $Chart->coa_name=preg_replace( "/\r|\n/", "", $request->input('customdetailtyep') );
+        }else{
+            $Chart->coa_account_type=$request->input('ACCType');
+            $Chart->coa_detail_type=$request->input('DetType');
+            $Chart->coa_name=$request->input('DetType');
+        }
+        
+        $Chart->coa_sub_account=$request->input('sub_accoinmt');
+        $Chart->coa_description=$request->input('COADesc');
+        $Chart->coa_code=$request->input('COACode');
+        $Chart->normal_balance=$request->input('COANormalBalance');
+        $Chart->coa_is_sub_acc=$on;
+        $Chart->coa_parent_account=$request->input('COAParentAcc');
+        $Chart->coa_balance=$request->input('COABalance');
+        $Chart->coa_beginning_balance=$request->input('COABalance');
+        $Chart->coa_as_of_date=$request->input('COAAsof');
+        $Chart->coa_active=$request->input('active');
+        $Chart->coa_title=$request->input('coatitle');
+        $Chart->coa_cc=$request->input('coa_cc');
+        $Chart->save();
+
         $AuditLog= new AuditLog;
         $AuditLogcount=AuditLog::count()+1;
         $userid = Auth::user()->id;
         $username = Auth::user()->name;
-        $eventlog="Added Credit Note No.".$request->credit_note_no;
+        $eventlog="Added Account No. ".$cccdcd;
         $AuditLog->log_id=$AuditLogcount;
         $AuditLog->log_user_id=$username;
         $AuditLog->log_event=$eventlog;
-        $AuditLog->log_name=$customer->f_name." ".$customer->l_name;
-        $AuditLog->log_transaction_date=$request->cn_date;
-        $AuditLog->log_amount="-".$request->total_balance_credit_note;
+        $AuditLog->log_name="";
+        $AuditLog->log_transaction_date="";
+        $AuditLog->log_amount="";
         $AuditLog->save();
-        $customer = new Customers;
-        $customer = Customers::find($sss[0]);
-        // $customer->opening_balance = $customer->opening_balance -$request->total_balance_credit_note;
-        // $customer->save();
-        $value;
-
-        for($x=0;$x<$request->product_count_credit_note;$x++){
-            $st_credit_note = new StCreditNote;
-            $st_credit_note->st_cn_no = $request->credit_note_no;
-            $st_credit_note->st_cn_product = $request->input('select_product_name_credit_note'.$x);
-            $st_credit_note->st_cn_desc = $request->input('select_product_description_credit_note'.$x);
-            $st_credit_note->st_cn_qty = $request->input('product_qty_credit_note'.$x);
-            
-            $st_credit_note->st_cn_rate = preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x));
-            $st_credit_note->st_cn_total = $request->input('product_qty_credit_note'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x));
-            $st_credit_note->st_p_method = null;
-            $st_credit_note->st_p_reference_no = null;
-            $st_credit_note->st_p_deposit_to = null;
-            $st_credit_note->st_p_amount = null;
-            $st_credit_note->save();
-            $JournalVoucherCount=count(JournalEntry::where([
-                ['journal_type','=','Journal Voucher']
-            ])->groupBy('je_no')->get())+1;
-            $current_year=date('y');
-        
-            $journalvoucher_no_series="";
-            if($JournalVoucherCount<10){
-                $journalvoucher_no_series="000".$JournalVoucherCount;
-            }
-            else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
-                $journalvoucher_no_series="00".$JournalVoucherCount;
-            }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
-                $journalvoucher_no_series="0".$JournalVoucherCount;
-            }
-            
-            $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
-            $journal_series_no="";
-            
-            $journal_series_no=$journalvoucher_no;
-
-            $JDate=$request->cn_date;
-            $JNo=$request->credit_note_no;
-            $JMemo=$request->cn_memo;
-            $account=$request->credit_note_account_debit_account;
-            $debit= $request->input('product_qty_credit_note'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x));
-            $credit= "";
-            $description=$request->input('select_product_description_credit_note'.$x);
-            $name= $customer->f_name." ".$customer->l_name;
-            
-
-            $journal_entries = new  JournalEntry;
-            $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         $journal_entries_count=count($jounal)+1;
-            $journal_entries->je_id = "1";
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Credit Note";
-            
-            $wwe=explode(" - ",$request->CostCenterCreditNote);
-            $journal_entries->je_cost_center=$wwe[0];
-            $journal_entries->journal_type="Journal Voucher";
-		    $journal_entries->je_series_no=$journal_series_no;
-            $journal_entries->save();
-
-            $JDate=$request->cn_date;
-            $JNo=$request->credit_note_no;
-            $JMemo=$request->cn_memo;
-            $account=$request->credit_note_account_credit_account;
-            $debit= "";
-            $credit= $request->input('product_qty_credit_note'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x));
-            $description=$request->input('select_product_description_credit_note'.$x);
-            $name= $customer->f_name." ".$customer->l_name;
-            
-
-            $journal_entries = new  JournalEntry;
-            
-            $journal_entries->je_id = "2";
-            $journal_entries->other_no=$JNo;
-            $journal_entries->je_no=$journal_entries_count;
-            $journal_entries->je_account=$account;
-            $journal_entries->je_debit=$debit;
-            $journal_entries->je_credit=$credit;
-            $journal_entries->je_desc=$description;
-            $journal_entries->je_name=$name;
-            $journal_entries->je_memo=$JMemo;
-            $journal_entries->created_at=$JDate;
-            $journal_entries->je_attachment=$JDate;
-            $journal_entries->je_transaction_type="Credit Note";
-            $wwe=explode(" - ",$request->CostCenterCreditNote);
-            $journal_entries->je_cost_center=$wwe[0];
-            $journal_entries->journal_type="Journal Voucher";
-		    $journal_entries->je_series_no=$journal_series_no;
-            $journal_entries->save();
-
-            $product = ProductsAndServices::find($request->input('select_product_name_credit_note'.$x));
-
-            $email_array = explode(',', $request->cn_email);
-
-            $value[$x] = [
-                'type' => 'Credit Note',
-                'name' => $customer->display_name,
-                'email' => $email_array,
-                'title' => 'CREDIT NOTE',
-                'note' => $request->cn_message,
-                'memo' => $request->cn_memo,
-                'product_name' => $product->product_name,
-                'product_description' => $request->input('select_product_description_credit_note'.$x),
-                'product_quantity' => $request->input('product_qty_credit_note'.$x),
-                'product_rate' => preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x)),
-                'product_total' => $request->input('product_qty_credit_note'.$x) * preg_replace("/[^0-9\.]/", "", $request->input('select_product_rate_credit_note'.$x)),
-                'credit_total' => $request->total_balance_credit_note,
-            ];
-        }
-        
-        if($request->cn_send_later=="on"){
-            Mail::send(['text'=>'mail'], $value, function($message) use ($value)
-            {
-                $company = Company::first();
-                $sales = Sales::first();
-                $expenses = Expenses::first();
-                $advance = Advance::first();
-                
-                $pdf = PDF::loadView('credit_note_pdf',compact('value', 'company', 'sales','expenses','advance'));
-                $attachment = $pdf->stream('credit_notice.pdf');
-                $message->attachData($attachment, 'credit_note.pdf');
-    
-                $message->to($value[0]['email'],'Hello Mr/Mrs '.$value[0]['name'])->subject('This is a credit note for '.$value[0]['name']);
-                $message->from('floydignified@gmail.com','Floyd Matabilas');
-            });
-        }
-        //return $value;
-        
-        
+        return redirect('/accounting')->with('success','Successfully Added A New Chart of Account');
     }
 
-    public function getcustomerinfo(Request $request){
-        $customer_id=$request->input('customer_id');
-        $sales_transaction = DB::table('sales_transaction')
-            ->where([
-                ['st_customer_id', '=', $customer_id],
-            ])
-            ->get();
-        $customers = Customers::all();
-        $picked= Customers::find($customer_id);
-        $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        $chart= ChartofAccount::find($id);
         $products_and_services = ProductsAndServices::all();
+        $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
         $jounal = DB::table('journal_entries')
                 ->select('je_no')
                 ->groupBy('je_no')
@@ -1403,116 +648,144 @@ class CustomersController extends Controller
         $expense_transactions = DB::table('expense_transactions')
             ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
             ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
-            ->where([
-                ['et_customer', '=', $customer_id],
-            ])
             ->get();
             $et_acc = DB::table('et_account_details')->get();
             $et_it = DB::table('et_item_details')->get();
         $totalexp=0;
         foreach($expense_transactions as $et){
-            if($et->remark==""){$totalexp=$totalexp+$et->et_ad_total;}
+            $totalexp=$totalexp+$et->et_ad_total;
         }
         $COA= ChartofAccount::where('coa_active','1')->get();
         $SS=SalesTransaction::all();$ETran = DB::table('expense_transactions')->get();
         $numbering = Numbering::first();
+        $cost_center_list= CostCenter::where('cc_status','1')->get();
         $st_invoice = DB::table('st_invoice')->get();
-        $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();
-        return view('app.customerinfo', compact('numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','VoucherCount','sales_transaction','customers', 'products_and_services','JournalEntry','jounalcount','picked'));
+        return view('pages.edit_chart',compact('numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','VoucherCount','customers','chart','JournalEntry','jounalcount','products_and_services'));
     }
-    public function update_customer_note(Request $request){
-        $id=$request->id;
-        $note=$request->note;
-        $customer=Customers::find($id);
-        $customer->notes = $note;
-        if($customer->save()){
-            return 1;
-        }else{
-            return 0;
+    public function editchartofAccounts(Request $request)
+    {
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        $chart= ChartofAccount::find($request->id);
+        $products_and_services = ProductsAndServices::all();
+        $JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('je_no','DESC')->get();
+        $jounal = DB::table('journal_entries')
+                ->select('je_no')
+                ->groupBy('je_no')
+                ->get();
+        $jounalcount=count($jounal)+1;
+        $VoucherCount=Voucher::count() + 1;
+        if($VoucherCount<10){
+            $VoucherCount="000".$VoucherCount;
         }
-
+        else if($VoucherCount<100 && $VoucherCount>9 ){
+            $VoucherCount="00".$VoucherCount;
+        }
+        else if($VoucherCount<1000 && $VoucherCount>99 ){
+            $VoucherCount="0".$VoucherCount;
+        }
+        $VoucherCount=Voucher::all();
+        $expense_transactions = DB::table('expense_transactions')
+            ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+            ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+            ->get();
+            $et_acc = DB::table('et_account_details')->get();
+            $et_it = DB::table('et_item_details')->get();
+        $totalexp=0;
+        foreach($expense_transactions as $et){
+            $totalexp=$totalexp+$et->et_ad_total;
+        }
+        $COA= ChartofAccount::where('coa_active','1')->get();
+        $SS=SalesTransaction::all();$ETran = DB::table('expense_transactions')->get();
+        $numbering = Numbering::first();
+        $cost_center_list= CostCenter::where('cc_status','1')->get();
+        $st_invoice = DB::table('st_invoice')->get();
+        return view('pages.edit_chart',compact('numbering','st_invoice','cost_center_list','ETran','SS','COA','expense_transactions','totalexp','et_acc','et_it','VoucherCount','customers','chart','JournalEntry','jounalcount','products_and_services'));
     }
-    public function update_Customer_edit(Request $request){
-        $customeredit = CustomerEdit::find($request->id);
-        $customer = Customers::find($request->id);
-        if(!empty($customer)){
-            $customer->f_name = $customeredit->f_name;
-            $customer->l_name = $customeredit->l_name;
-            $customer->email = $customeredit->email;
-            $customer->company = $customeredit->company;
-            $customer->phone = $customeredit->phone;
-            $customer->mobile = $customeredit->mobile;
-            $customer->fax = $customeredit->fax;
-            $customer->display_name = $customeredit->display_name;
-            $customer->other = $customeredit->other;
-            $customer->website = $customeredit->website;
-            $customer->street = $customeredit->street;
-            $customer->city = $customeredit->city;
-            $customer->state = $customeredit->state;
-            $customer->postal_code = $customeredit->postal_code;
-            $customer->country = $customeredit->country;
-            $customer->payment_method = $customeredit->payment_method;
-            $customer->terms = $customeredit->terms;
-            $customer->opening_balance = $customeredit->opening_balance;
-            $customer->as_of_date = $customeredit->as_of_date;
-            $customer->account_no = $customeredit->account_no;
-            $customer->business_id_no = $customeredit->business_id_no;
-            $customer->notes = $customeredit->notes;
-            $customer->tin_no=$customeredit->tin_no;
-            $customer->withhold_tax=$customeredit->withhold_tax;
-            $customer->business_style=$customeredit->business_style;
-            if($customer->save()){
-                $customeredit->edit_status="1";
-                $customeredit->save();
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update_COA_edit(Request $request){
+        $ChartEdit=COAEdits::find($request->id);
+        $Chart=ChartofAccount::find($request->id);
+        if(!empty($Chart)){
+            $new_balance=0;
+            $beg_balance_new=$Chart->coa_beginning_balance-$ChartEdit->coa_beginning_balance;
+            $new_balance=$Chart->coa_balance-$beg_balance_new;
+            $Chart->coa_account_type=$ChartEdit->coa_account_type;
+            $Chart->coa_detail_type=$ChartEdit->coa_detail_type;
+            $Chart->coa_name=$ChartEdit->coa_name;
+            $Chart->coa_sub_account=$ChartEdit->coa_sub_account;
+            $Chart->coa_description=$ChartEdit->coa_description;
+            $Chart->coa_code=$ChartEdit->coa_code;
+            $Chart->coa_balance=$new_balance;
+            $Chart->normal_balance=$ChartEdit->normal_balance;
+            $Chart->coa_beginning_balance=$ChartEdit->coa_beginning_balance;
+            $Chart->coa_as_of_date=$ChartEdit->coa_as_of_date;
+            $Chart->coa_title=$ChartEdit->coa_title;
+            $Chart->coa_active=$ChartEdit->coa_active;
+            $Chart->coa_cc=$ChartEdit->coa_cc;
+            if($Chart->save()){
+                $ChartEdit->edit_status="1";
+                $ChartEdit->save();
             }
         }
         
+        
     }
-    public function delete_Customer_edit(Request $request){
-        $customeredit = CustomerEdit::find($request->id);
-        $customeredit->edit_status="1";
-        $customeredit->save();
+    public function delete_COA_edit(Request $request){
+        $ChartEdit=COAEdits::find($request->id);
+        $ChartEdit->edit_status="1";
+        $ChartEdit->save();
     }
-    public function update_customer(Request $request){
+    public function update(Request $request, $id)
+    {
+        
+        $on='0';
+        if($request->input('COASubAcc2')=="on"){
+            $on='1';
+        }else{
+            $on='0';
 
-        $customer = CustomerEdit::find($request->customer_id);
-        if(empty($customer)){
-            $customer = new CustomerEdit;
         }
-        $customer->customer_id=$request->customer_id;
-        $customer->f_name = $request->f_name;
-        $customer->l_name = $request->l_name;
-        $customer->email = $request->email;
-        $customer->company = $request->company;
-        $customer->phone = $request->phone;
-        $customer->mobile = $request->mobile;
-        $customer->fax = $request->fax;
-        $customer->display_name = $request->display_name;
-        $customer->other = $request->other;
-        $customer->website = $request->website;
-        $customer->street = $request->street;
-        $customer->city = $request->city;
-        $customer->state = $request->state;
-        $customer->postal_code = $request->postal_code;
-        $customer->country = $request->country;
-        $customer->payment_method = $request->payment_method;
-        $customer->terms = $request->terms;
-        $customer->opening_balance = $request->opening_balance;
-        $customer->as_of_date = $request->as_of_date;
-        $customer->account_no = $request->account_no;
-        $customer->business_id_no = $request->business_id_no;
-        $customer->notes = $request->notes;
-        $customer->tin_no=$request->tin_no;
-        $customer->withhold_tax=$request->withholdingtax;
-        $customer->business_style=$request->business_style;
-        $customer->edit_status="0";
-        $customer->save();
+        $Chart=COAEdits::find($id);
+        if(empty($Chart)){
+            $Chart = new COAEdits;
 
+        }
+        if($request->input('ACCType2')=="Custom"){
+            $Chart->coa_account_type=$request->input('customaccounttype2');
+            $Chart->coa_detail_type=$request->input('customdetailtyep2');
+            $Chart->coa_name=$request->input('customdetailtyep2');
+        }else{
+            $Chart->coa_account_type=$request->input('ACCType2');
+            $Chart->coa_detail_type=$request->input('DetType2');
+            $Chart->coa_name=preg_replace( "/\r|\n/", "", $request->input('DetType2') );
+        }
+        
+        $Chart->id=$id;
+        $Chart->coa_sub_account=$request->input('sub_accoinmt2');
+        $Chart->coa_description=$request->input('COADesc2');
+        $Chart->coa_code=$request->input('COACode2');
+        $Chart->normal_balance=$request->input('COANormalBalance2');
+        $Chart->coa_is_sub_acc=$on;
+        $Chart->coa_parent_account=$request->input('COAParentAcc2');
+        $Chart->coa_beginning_balance=$request->input('COABalance2');
+        $Chart->coa_as_of_date=$request->input('COAAsof2');
+        $Chart->coa_title=$request->input('coatitl2e');
+        $Chart->coa_cc=$request->input('coa_cc2');
+        $Chart->edit_status="0";
+        $Chart->save();
         // $AuditLog= new AuditLog;
         // $AuditLogcount=AuditLog::count()+1;
         // $userid = Auth::user()->id;
         // $username = Auth::user()->name;
-        // $eventlog="Updated Customer";
+        // $eventlog="Updated Account No. ".$id;
         // $AuditLog->log_id=$AuditLogcount;
         // $AuditLog->log_user_id=$username;
         // $AuditLog->log_event=$eventlog;
@@ -1520,424 +793,8043 @@ class CustomersController extends Controller
         // $AuditLog->log_transaction_date="";
         // $AuditLog->log_amount="";
         // $AuditLog->save();
-
-        return Redirect::to('customerinfo/?customer_id='.$request->customer_id);
-    }
-    public function refresh_customers_table(){
-        $customers = Customers::where('account_type','Customer')->get();
-        return \DataTables::of($customers)
-        ->addColumn('opening_balance', function($customers){
-            return number_format($customers->opening_balance,2);
-        })
-        ->addColumn('display_name', function($customers){
-            if($customers->display_name!=""){
-                return $customers->display_name;
-            }else{
-                return $customers->f_name." ".$customers->l_name;
-            }
-        })
-        
-        
-        ->make(true);
+        return redirect('/accounting')->with('success','Chart of Account Updated');
     }
 
-    public function refresh_sales_table(Request $request){
-        $begdate=$request->beginning;
-        $enddate=$request->end;
-        $sales_transaction = DB::connection('mysql')->select("SELECT * FROM sales_transaction LEFT JOIN customers ON customers.customer_id=sales_transaction.st_customer_id WHERE st_date BETWEEN '$begdate' AND '$enddate' ");
+  
+    public function destroy2(Request $request)
+    {
+
+        $ChartEdit=COAEdits::find($request->input('id'));
+        $Chart=ChartofAccount::find($request->input('id'));
+        if(empty($ChartEdit)){
+            $ChartEdit=new COAEdits;
+        }
         
-        return \DataTables::of($sales_transaction)
+        $ChartEdit->id=$request->input('id');
+        $ChartEdit->coa_account_type=$Chart->coa_account_type;
+        $ChartEdit->coa_detail_type=$Chart->coa_detail_type;
+        $ChartEdit->coa_name=$Chart->coa_name;
         
-        ->addColumn('action', function($sales_transaction){
-            $usersrestriction=UserAccess::where('user_id',Auth::user()->id)->get();
+        $ChartEdit->coa_description=$Chart->coa_description;
+        $ChartEdit->coa_code=$Chart->coa_code;
+        $ChartEdit->normal_balance=$Chart->normal_balance;
+        $ChartEdit->coa_balance=$Chart->coa_balance;
+        $ChartEdit->coa_as_of_date=$Chart->coa_as_of_date;
+        $ChartEdit->coa_title=$Chart->coa_title;
+        $ChartEdit->coa_active="0";
+        $ChartEdit->edit_status="0";
+        if($ChartEdit->save()){
             
-            if($sales_transaction->st_status == "Open" && $sales_transaction->st_type == "Invoice" || $sales_transaction->st_status == "Partially paid" && $sales_transaction->st_type == "Invoice"){
-                if($sales_transaction->remark==""){
-                    $withpayment=0;
-                    
-                    if($withpayment==1){
+        }
 
+        // $AuditLog= new AuditLog;
+        // $AuditLogcount=AuditLog::count()+1;
+        // $userid = Auth::user()->id;
+        // $username = Auth::user()->name;
+        // $eventlog="Deleted Account No. ".$request->input('id');
+        // $AuditLog->log_id=$AuditLogcount;
+        // $AuditLog->log_user_id=$username;
+        // $AuditLog->log_event=$eventlog;
+        // $AuditLog->log_name="";
+        // $AuditLog->log_transaction_date="";
+        // $AuditLog->log_amount="";
+        // $AuditLog->save();
+        return redirect('/accounting')->with('success','Chart of Account Deleted');
+    }
+    public function export_test(Request $request){
+        Excel::load('extra/export_report/export_report_template_journal.xlsx', function($doc) use($request){
+        $FROM=$request->FROM;
+        $TO=$request->TO;
+        $CostCenterFilter=$request->CostCenterFilter;
+        $filtertemplate=$request->filtertemplate;
+        $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+        $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+        if($filtertemplate=="All"){
+            $sortsetting="";
+            $sortsettingjournal="";
+        }
+        if($sortsettingjournal==""){
+            $sortjournal="WHERE je_cost_center='".$CostCenterFilter."' AND (remark!='NULLED' OR remark IS NULL OR remark!='Cancelled')";
+        }else{
+            $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'  AND (remark!='NULLED' OR remark IS NULL OR remark!='Cancelled')";
+        }
+        
+        if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+            $sortjournal="WHERE (remark!='NULLED' OR remark IS NULL OR remark!='Cancelled')";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+        }
+        $je_grouped= DB::table('journal_entries')
+                ->whereBetween('journal_entries.created_at', [$FROM, $TO])
+                ->join('cost_center', 'journal_entries.je_cost_center', '=', 'cost_center.cc_no')
+                ->select('*')
+                ->groupBy('je_cost_center')
+                ->get();
+        if($filtertemplate=="All"){
+            $je_grouped= DB::table('journal_entries')
+            ->join('cost_center', 'journal_entries.je_cost_center', '=', 'cost_center.cc_no')
+            ->select('*')
+            ->groupBy('je_cost_center')
+            ->get();
+        }
+        $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                            ".$sortjournal." 
+                            ORDER BY je_no DESC");
+        
+        
+        $columncount=5;
+        $sheet = $doc->setActiveSheetIndex(0);
+        if($CostCenterFilter=="By Cost Center"){
+            
+        }else{
+            $total_balance_debit=0;
+            $total_balance_credit=0;
+            foreach($JournalEntry as $je){
+                if($je->remark!='Cancelled'){
+                    $sheet->setCellValue('B'.$columncount, date('d/m/Y',strtotime($je->je_attachment)));
+                    //$sheet->setCellValue('C'.$columncount, date('F Y',strtotime($je->je_attachment)));
+                    if($je->journal_type=="Cheque Voucher"){
+                        $sheet->setCellValue('C'.$columncount,$je->je_series_no);
                     }else{
-                        if($usersrestriction[0]->invoice=="1"){
-                            $STInvoice= STInvoice::where([
-                                ['st_i_no','=',$sales_transaction->st_no],
-                                ['st_p_invoice_type','=',$sales_transaction->st_invoice_type],
-                                ['st_p_location','=',$sales_transaction->st_location]
-                            ])->get();
-                            $options="";
-
-                            foreach($STInvoice as $sti){
-                                if($sti->st_i_total>$sti->st_p_amount){
-                                    $label="";
-                                    if($sti->st_i_desc!=""){
-                                        $label=$sti->st_i_desc;
-                                    }else if($sti->st_p_cost_center!=""){
-                                        $cost_centers= CostCenter::where([
-                                            ['cc_no','=',$sti->st_p_cost_center]
-                                        ])->first();
-                                        $label=$cost_centers->cc_name;
-                                    }else if($sti->st_i_product!=""){
-                                        $procustss= ProductsAndServices::where([
-                                            ['product_id','=',$sti->st_i_product]
-                                        ])->first();
-                                        $label=$procustss->product_name;
-                                    }
-                                    $options.='<a class="dropdown-item receive_payment" data-invoice_item_no="'.$sti->st_i_item_no.'" id="'.$sales_transaction->st_no.'" href="#" data-invoice_location="'.$sales_transaction->st_location.'" data-invoice_type="'.$sales_transaction->st_invoice_type.'" data-toggle="modal" data-target="#salesreceiptmodal">'.$label.'</a>';
-                                }else{
-                                    $label="";
-                                    if($sti->st_i_desc!=""){
-                                        $label=$sti->st_i_desc;
-                                    }else if($sti->st_p_cost_center!=""){
-                                        $cost_centers= CostCenter::where([
-                                            ['cc_no','=',$sti->st_p_cost_center]
-                                        ])->first();
-                                        $label=$cost_centers->cc_name;
-                                    }else if($sti->st_i_product!=""){
-                                        $procustss= ProductsAndServices::where([
-                                            ['product_id','=',$sti->st_i_product]
-                                        ])->first();
-                                        $label=$procustss->product_name;
-                                    }
-                                    $options.='<a class="dropdown-item disabled" href="#" >'.$label.'(Paid)</a>'; 
-                                }
-                                
-                            }
-                            
-                            return '<div class="dropdown"><button class="btn btn-link btn-sm" style="font-size:11px;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Receive Payment
-                            </button>
-                            <div class="dropdown-menu">'.$options.'</div></div>';
-                            
-    
+                        $sheet->setCellValue('D'.$columncount,$je->je_series_no);
+                    }
+                    $COA= ChartofAccount::find($je->je_account);
+                    $sheet->setCellValue('E'.$columncount,$COA->coa_code);
+                    $sheet->setCellValue('F'.$columncount,$COA->coa_name);
+                    $sheet->setCellValue('G'.$columncount,$COA->coa_title);
+                    if($je->je_debit!=""){
+                        if($je->remark==""){   
+                            $sheet->setCellValue('H'.$columncount,number_format($je->je_debit,2));
+                            $total_balance_debit+=$je->je_debit;
+            
                         }else{
-                            return "";
+                           
                         }
                     }
+                    if($je->je_credit!=""){
+                        if($je->remark==""){   
+                            $sheet->setCellValue('I'.$columncount,number_format($je->je_credit,2));
+                            $total_balance_credit+=$je->je_credit;
+                        }else{
+                           
+                        }
+                    }
+                    if($je->je_cost_center!="null" || $je->je_cost_center!=""){
+                        $cost_center_list= CostCenter::find($je->je_cost_center);
+                        $sheet->setCellValue('J'.$columncount,(!empty($cost_center_list)? $cost_center_list->cc_name : ''));
+                    }
                     
+                    $sheet->setCellValue('K'.$columncount,$je->je_name);
+                    $sheet->setCellValue('L'.$columncount,$je->cheque_no);
+                    $sheet->setCellValue('M'.$columncount,$je->ref_no);
+                    if($je->date_deposited!=NULL){
+                        $sheet->setCellValue('N'.$columncount,date('d/m/Y',strtotime($je->date_deposited)));
+                    }
+                    $sheet->setCellValue('O'.$columncount,$je->je_memo);
                     
+        
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                        )
+                    );
+                    $sheet->getStyle('C'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
+        
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('H'.$columncount.'')->applyFromArray($style);
+                    $sheet->getStyle('I'.$columncount.'')->applyFromArray($style);
+                    $columncount++;
                 }
                 
-            }else if($sales_transaction->st_status == "Pending" && $sales_transaction->st_type == "Estimate"){
-                if($sales_transaction->remark==""){
-                    if($usersrestriction[0]->estimate=="1"){
-                        return '<span class="table-add mb-3 mr-2"><a class="btn btn-link text-info create_invoice_estimate" id="'.$sales_transaction->st_no.'" href="#" data-toggle="modal" data-target="#invoicemodal"><i aria-hidden="true">Create Invoice</i></a></span>';
-                    }
-                }
-            }else if($sales_transaction->st_status == "Open" && $sales_transaction->st_type == "Charge"){
-                if($sales_transaction->remark==""){
-                return '<span class="table-add mb-3 mr-2"><a class="btn btn-link text-info create_invoice_delayed_charge" id="'.$sales_transaction->st_no.'" href="#" data-toggle="modal" data-target="#invoicemodal"><i aria-hidden="true">Create Invoice</i></a></span>';
-                }
-            }else if($sales_transaction->st_status == "Open" && $sales_transaction->st_type == "Credit"){
-                if($sales_transaction->remark==""){
-                return '<span class="table-add mb-3 mr-2"><a class="btn btn-link text-info create_invoice_delayed_credit" id="'.$sales_transaction->st_no.'" href="#" data-toggle="modal" data-target="#invoicemodal"><i aria-hidden="true">Create Invoice</i></a></span>';
-                }
+            }
+            $style = array(
+                'borders' => array(
+                    'top'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    ),
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('C'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('G'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('H'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('I'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('J'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('K'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('L'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('M'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('N'.$columncount.'')->applyFromArray($style);
+            $sheet->getStyle('O'.$columncount.'')->applyFromArray($style);
+            $sheet->setCellValue('H'.$columncount,number_format($total_balance_debit,2));
+            $sheet->setCellValue('I'.$columncount,number_format($total_balance_credit,2));
+        }
+        
+        
+        
+
+        })->setFilename('Journal Entry Report '.date('m-d-Y'))->download('xlsx');
+    }
+    function export_profitandlossaspercent(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_as_percentage_total.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
             }else{
-                if($sales_transaction->st_type== "Sales Receipt"){
-                    if($usersrestriction[0]->sales_receipt=="1"){
-                        $formst="";
-                        $Formstyle= Formstyle::all();
-                        foreach($Formstyle as $f){
-                            if($f->cfs_form_name_value=="SALES RECEIPT"){
-                                $formst=$f->cfs_id;
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=5;
+            $sheet = $doc->setActiveSheetIndex(0);
+            $totalincomeforpercent=0;
+            foreach ($COA as $Coa){
+                if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            if ($JE->je_credit!=""){
+                                $totalincomeforpercent+=$JE->je_credit;
+                            }else{
+                                $totalincomeforpercent-=$JE->je_debit;
                             }
                         }
-                        if($formst!=""){
-                            $s="";
-                            $s.='<form action="previewformstyle" method="GET">';
-                            $s.='<input type="hidden" name="receipt" value="'.$sales_transaction->st_no.'">';
-                            $s.='<input type="hidden" name="form" value="'.$formst.'">';
-                            $s.='<input type="submit" class="btn btn-link text-info" name="print_receipt" value="Print Receipt">';
-                            $s.='</form>';
-                            return $s;
-                            //return '<span class="table-add mb-3 mr-2"><a class="text-info print_receipt" href="/previewformstyle?receipt='.$sales_transaction->st_no.'"&form='.$formst.' ><i aria-hidden="true">Print Receipt</i></a></span>'; 
-                        }else{
-                            return '<span class="table-add mb-3 mr-2">No Template</span>';
+                    }
+                }
+            }
+            $totalincomeforpercent2=0;
+            foreach ($COA as $Coa){
+                if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            if ($JE->je_credit!=""){
+                                $totalincomeforpercent2-=$JE->je_credit;
+                            }else{
+                                $totalincomeforpercent2+=$JE->je_debit;
+                            }
+                        }
+                    }
+                }
+            }
+            $totalincomeexpense=$totalincomeforpercent-$totalincomeforpercent2;
+                
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($coa_name_total*100)/$totalincomeexpense,2)." %" : "0"." %");
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            $sheet->setCellValue('E'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    $sheet->setCellValue('E'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($coa_name_total*100)/$totalincomeexpense,2)." %" : "0"." %");
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
                         }
 
                     }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
                     
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
                     
-                }else{
-                    if($sales_transaction->st_type== "Payment"){
-                        return '<span class="table-add mb-3 mr-2"><a class="btn btn-link text-info create_invoice_delayed_credit" href="generate_pdf_bir?id='.$sales_transaction->st_customer_id.'" ><i aria-hidden="true">Generate Form</i></a></span>';  
-                    }else{
-                        return '<span class="table-add mb-3 mr-2">N/A</span>';
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($GrossProfit*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    $sheet->setCellValue('E'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            $sheet->setCellValue('E'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($coa_name_total*100)/$totalincomeexpense,2)." %" : "0"." %");
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                            $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($IncomeTotal*100)/$totalincomeexpense,2)." %" : "0"." %");
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
                     }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $sheet->setCellValue('D'.$position,number_format($TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format(($TotalOperatingExpense*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,$totalincomeexpense!=0? number_format((($GrossProfit-$TotalOperatingExpense)*100)/$totalincomeexpense,2)." %" : "0"." %");
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss as Percentage Total Report '.date('m-d-Y'))->download('xlsx');
+    }
+    function export_profitandlossquarterly(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_quarterly.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=4;
+            $sheet = $doc->setActiveSheetIndex(0);
+            $CurrentYear=date('Y',strtotime($FROM));
+            $sheet->setCellValue('D'.$position,'Jan-Mar '.$CurrentYear);
+            $sheet->setCellValue('E'.$position,'Apr-Jun '.$CurrentYear);
+            $sheet->setCellValue('F'.$position,'Jul-Sep '.$CurrentYear);
+            $sheet->setCellValue('G'.$position,'Oct-Dec '.$CurrentYear);
+
+            $position++;    
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+
+                            $individualinvoice=0;
+                            $individualinvoice2=0;
+                            $individualinvoice3=0;
+                            $individualinvoice4=0;
+                            foreach ($JournalEntry as $JE){
+                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice2+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice2-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice3+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice3-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice4+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice4-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('H'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
                     
                 }
-               
-            }                
-        })
-        ->addColumn('customer_name', function($sales_transaction){
-            return $sales_transaction->display_name;       
-        })
-        ->addColumn('customer_balance', function($sales_transaction){
-            return 'PHP '.number_format($sales_transaction->st_balance, 2);             
-        })
-        ->addColumn('transaction_total', function($sales_transaction){
-            if($sales_transaction->st_type == "Invoice"){
-                $STInvoice= STInvoice::all();
-                $invoiuce_totral=0;
-                foreach($STInvoice as $sstt){
-                    if($sales_transaction->st_no==$sstt->st_i_no){
-                        if($sales_transaction->st_location==$sstt->st_p_location && $sales_transaction->st_invoice_type==$sstt->st_p_invoice_type){
-                            //return 'PHP '.number_format($sales_transaction->invoice_info->sum('st_i_total'), 2); 
-                            $invoiuce_totral+=$sstt->st_i_total;
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+            $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $individualinvoice=0;
+                            $individualinvoice2=0;
+                            $individualinvoice3=0;
+                            $individualinvoice4=0;
+                            foreach ($JournalEntry as $JE){
+                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice2+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice2-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice3+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice3-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                                elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $individualinvoice4+=$JE->je_credit;
+                                        }else{
+                                            $individualinvoice4-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('H'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
                         }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($GrossProfit,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $individualinvoice=0;
+                                    $individualinvoice2=0;
+                                    $individualinvoice3=0;
+                                    $individualinvoice4=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice2-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice2+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice3-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice3+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $individualinvoice4-=$JE->je_credit;
+                                                }else{
+                                                    $individualinvoice4+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('H'.$position,number_format($coa_name_total,2));
+                                    
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            
+                            foreach ($COA as $Coa){
+                                $individualinvoice=0;
+                                    $individualinvoice2=0;
+                                    $individualinvoice3=0;
+                                    $individualinvoice4=0;
+                                if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice2-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice2+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice3-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice3+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                            elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $individualinvoice4-=$JE->je_credit;
+                                                    }else{
+                                                        $individualinvoice4+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                            
+                                }
+                            }
+                            $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                            $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                            $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                            $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                            $sheet->setCellValue('H'.$position,number_format($IncomeTotal,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4+=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4,2));
+                    $sheet->setCellValue('H'.$position,number_format($TotalOperatingExpense,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $individualinvoice=0;
+                    $individualinvoice2=0;
+                    $individualinvoice3=0;
+                    $individualinvoice4=0;
+                    foreach ($COA as $Coa){
+                        if($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=='Revenues' || $Coa->coa_account_type=='Revenue'){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice2+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice2-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice3+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice3-=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice4+=$JE->je_credit;
+                                }else{
+                                    $individualinvoice4-=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $individualinvoice12=0;
+                    $individualinvoice22=0;
+                    $individualinvoice32=0;
+                    $individualinvoice42=0;
+                    foreach ($COA as $Coa){
+                        if($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                    foreach ($JournalEntry as $JE){
+                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-01-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-03-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice12-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice12+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-04-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-06-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice22-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice22+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-07-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-09-30"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice32-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice32+=$JE->je_debit;
+                                }
+                            }
+                        }
+                        elseif(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($CurrentYear."-10-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($CurrentYear."-12-31"))){
+                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                if ($JE->je_credit!=""){
+                                    $individualinvoice42-=$JE->je_credit;
+                                }else{
+                                    $individualinvoice42+=$JE->je_debit;
+                                }
+                            }
+                        }
+                    }
+                        }
+                    }
+                    $sheet->setCellValue('D'.$position,number_format($individualinvoice-$individualinvoice12,2));
+                    $sheet->setCellValue('E'.$position,number_format($individualinvoice2-$individualinvoice22,2));
+                    $sheet->setCellValue('F'.$position,number_format($individualinvoice3-$individualinvoice32,2));
+                    $sheet->setCellValue('G'.$position,number_format($individualinvoice4-$individualinvoice42,2));
+                    $sheet->setCellValue('H'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('F'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('G'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('H'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Quarterly Profit And Loss Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function export_profitandloss(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                            JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                            ".$sortsetting." 
+                            ORDER BY st_no ASC");
+                            
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=5;
+            $sheet = $doc->setActiveSheetIndex(0);
+            
+                
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                                    
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $sheet->setCellValue('D'.$position,number_format($TotalOperatingExpense,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function exporttoexcelprofitandlossbycustomer(Request $request){
+        
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_by_customer.xlsx', function($doc) use($request){
+            $sortsetting="";
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+                
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+                                
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->orderBy('display_name', 'ASC')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'DESC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            $ET_Customer= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    
+                    ->select('et_customer')
+                    ->groupBy('et_customer')
+                    ->orderBy('display_name', 'ASC')
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+                $ET_Customer= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->select('et_customer')
+                    ->groupBy('et_customer')
+                    ->orderBy('display_name', 'ASC')
+                    ->get();
+                $STCustomer= DB::table('sales_transaction')
+                    ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                    ->select('st_customer_id')
+                    ->groupBy('st_customer_id')
+                    ->orderBy('display_name', 'ASC')
+                    ->get();    
+            }
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $SS=SalesTransaction::all();
+            $ETran = DB::table('expense_transactions')->get();      
+            $et_account_details= DB::table('et_account_details')->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            $combinedarray=array();
+            foreach($STCustomer as $ST){
+                foreach($ET_Customer as $SC){
+                    
+                        $combinedarray[]=$SC->et_customer;
+                        
+                    
+                }
+            }
+            foreach($ET_Customer as $SC){
+                foreach($STCustomer as $ST){
+                
+                    if($SC->et_customer!=$ST->st_customer_id){
+                        $combinedarray[]=$ST->st_customer_id;
                         
                     }
                 }
-                
-                return 'PHP '.number_format($invoiuce_totral, 2); 
+            
+            }
+            $nodup=array_unique($combinedarray);
+            $output=array_unique($combinedarray);
+            $STARRAY=array();
+            $emptyArray = array();
 
-            }else if($sales_transaction->st_type == "Estimate"){
-                return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);  
-            }else if($sales_transaction->st_type == "Sales Receipt"){
-                return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);  
-            }else if($sales_transaction->st_type == "Refund Receipt"){
-                return 'PHP '.number_format($sales_transaction->refund_receipt_info->sum('st_r_total'), 2);  
-            }else if($sales_transaction->st_type == "Charge"){
-                return 'PHP '.number_format($sales_transaction->delayed_charge_info->sum('st_dc_total'), 2);  
-            }else if($sales_transaction->st_type == "Credit"){
-                return 'PHP '.number_format($sales_transaction->delayed_credit_info->sum('st_dcredit_total'), 2);  
-            }else{
-                return 'PHP '.number_format($sales_transaction->st_amount_paid, 2);
-            }           
-        })
-        ->addColumn('checkbox', function($sales_transaction){
-            $sales_transaction2222 = SalesTransaction::all();
-            $withpayment=0;
-            foreach($sales_transaction2222 as $ssss){
-                if($sales_transaction->st_no==$ssss->st_payment_for && $sales_transaction->st_type=="Invoice" && $sales_transaction->st_location==$ssss->st_location && $sales_transaction->st_invoice_type==$ssss->st_invoice_type ){
-                    $withpayment=1;
+            foreach($nodup as $id){
+                
+                foreach ($SalesTransaction as $ST) {
+                    
+                    if($id==$ST->st_customer_id){
+                        $STARRAY['type']  = "Sales" ;
+                        $STARRAY['st_no']  = $ST->st_no ;
+                        $STARRAY['st_customer_id']  = $ST->st_customer_id ;
+                        $STARRAY['st_type']  = $ST->st_type ;
+                        $STARRAY['st_amount_paid']  = $ST->st_amount_paid ;
+                        $STARRAY['et_no']  = "None" ;
+                        $STARRAY['et_customer']  = "None";
+                        $STARRAY['et_type']  = "None";
+                        $STARRAY['remark']  = $ST->remark;
+                        array_push($emptyArray, $STARRAY);
+                        
+                    }
+                }
+                foreach ($expense_transactions as $ET) {
+                    if($id==$ET->et_customer){
+                        $STARRAY['st_no']  = "None" ;
+                        $STARRAY['st_customer_id']  = "None";
+                        $STARRAY['st_type']  ="None";
+                        $STARRAY['st_amount_paid']  = "0";
+                        $STARRAY['type']  = "Expense" ;
+                        $STARRAY['et_no']  = $ET->et_no ;
+                        $STARRAY['et_customer']  = $ET->et_customer ;
+                        $STARRAY['et_type']  = $ET->et_type ;
+                        $STARRAY['remark']  = $ET->remark;
+                        array_push($emptyArray, $STARRAY);
+                    }
+                }
+                
+                // foreach($st_credit_notes as $SC){
+                    
+                //     if($SC->st_cn_product!=$as->st_i_product){
+                //         $STARRAY['st_i_rate']  = $as->st_i_rate ;
+                //         $STARRAY['st_i_product']  = $as->st_i_product ;
+                //         array_push($emptyArray, $STARRAY);
+                //     }
+                // }
+                
+            }
+            $position=3;
+            $sheet = $doc->setActiveSheetIndex(0);
+            
+            $position++;
+            
+            $addth="D";
+            $style = array(
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                    'color' => array('rgb' => 'ffffff'),
+                ),
+                'fill' => array(
+                    'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                    'color' => array('rgb' => '95b3d7')
+                )
+            );
+            
+            foreach ($customers as $cus){
+                foreach ($nodup as $ST){
+                    if ($ST==$cus->customer_id){
+                        if ($cus->display_name!=""){
+                            $sheet->setCellValue($addth.$position,$cus->display_name);
+                        }else{
+                            $sheet->setCellValue($addth.$position,$cus->f_name." ".$cus->l_name);
+                        }
+                        $sheet->getColumnDimension($addth)->setWidth(30);
+                        $sheet->getStyle($addth.$position)->applyFromArray($style);
+                        $addth++;
+                    }
+                }     
+            }
+            
+            $sheet->setCellValue($addth.$position,"Total");
+            $sheet->getColumnDimension($addth)->setWidth(30);
+            $sheet->getStyle($addth.$position)->applyFromArray($style);
+            $position++;     
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $addth="D";
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            
+                            foreach ($output as $ST){
+                                
+                                $CustomerTotal=0;
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    )
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                            }
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue($addth.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $CustomerTotal=0;
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$coa->id && $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    )
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
                 }
             }
-            if($withpayment==0){
-                if($sales_transaction->remark==""){
-                    return "'".$sales_transaction->st_type."','".$sales_transaction->st_no."','".$sales_transaction->st_location."','".$sales_transaction->st_invoice_type."'";
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $addth="D";
+            foreach ($output as $ST){
+                
+                $CustomerTotal=0;
+                foreach ($COA as $Coa){
+                    if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                        foreach ($SS as $ss){
+                            if ($ss->st_customer_id==$ST){
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                        if ($JE->je_credit!="" ){
+                                            $CustomerTotal+=$JE->je_credit;
+                                        }else{
+                                            $CustomerTotal-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        foreach ($ETran as $ss){
+                            if ($ss->et_customer==$ST){
+                                foreach ($JournalEntry as $JE){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                        if ($JE->je_credit!="" ){
+                                            $CustomerTotal+=$JE->je_credit;
+                                        }else{
+                                            $CustomerTotal-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                        } 
+                    }
+                }
+                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                $style = array(
+                    'font'    => array(
+                        'bold'      => true,
+                    ),
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                    ),
+                    'borders' => array(
+                        'bottom'     => array(
+                            'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                            'color' => array(
+                                'rgb' => '808080'
+                            )
+                        )
+                    ),
+                );
+                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                $addth++; 
+               
+            }
+            $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $addth="D";
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            foreach ($output as $ST){
+                               
+                                $CustomerTotal=0;
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    ),
+                                    
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++; 
+                            }
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue($addth.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $CustomerTotal=0;
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    ),
+                                    
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++; 
+                        
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $CustomerTotal=0;
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type=="Cost of Sales"){
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } 
+                            }
+                        }
+                        $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                        $style = array(
+                            'alignment' => array(
+                                'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                            ),
+                            
+                        );
+                        $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                        $addth++; 
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+                    $addth="D";
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    foreach ($output as $ST){
+                        
+                        $CustomerTotal=0;
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Revenues"){
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!="" ){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } 
+                            }
+                        }
+                        $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                        $style = array(
+                            'borders' => array(
+                                'top'     => array(
+                                    'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                    'color' => array(
+                                        'rgb' => '808080'
+                                    )
+                                ),
+                                'bottom'     => array(
+                                    'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                    'color' => array(
+                                        'rgb' => '808080'
+                                    )
+                                )
+                            ),
+                            'alignment' => array(
+                                'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                            ),
+                            'font'    => array(
+                                'bold'      => true,
+                                'color' => array('rgb' => 'ffffff'),
+                            ),
+                            'fill' => array(
+                                'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => '95b3d7')
+                            )
+                        );
+                        $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                        $addth++; 
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($GrossProfit,2));
+
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $addth="D";
+                                    foreach ($output as $ST){
+                                        $CustomerTotal=0;
+                                        foreach ($SS as $ss){
+                                            if ($ss->st_customer_id==$ST){
+                                                foreach ($JournalEntry as $JE){
+                                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                        if ($JE->je_credit!="" ){
+                                                            $CustomerTotal-=$JE->je_credit;
+                                                        }else{
+                                                            $CustomerTotal+=$JE->je_debit;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        foreach ($ETran as $ss){
+                                            if ($ss->et_customer==$ST){
+                                                foreach ($JournalEntry as $JE){
+                                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                        if ($JE->je_credit!="" ){
+                                                            $CustomerTotal-=$JE->je_credit;
+                                                        }else{
+                                                            $CustomerTotal+=$JE->je_debit;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                        $style = array(
+                                            'alignment' => array(
+                                                'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                            ),
+                                            
+                                        );
+                                        $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                        $addth++; 
+                                    }
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue($addth.$position,number_format($coa_name_total,2));
+                                    
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $addth="D";
+                            foreach ($output as $ST){
+                                
+                                $CustomerTotal=0;
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        foreach ($SS as $ss){
+                                            if ($ss->st_customer_id==$ST){
+                                                foreach ($JournalEntry as $JE){
+                                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->st_no){
+                                                        if ($JE->je_credit!="" ){
+                                                            $CustomerTotal-=$JE->je_credit;
+                                                        }else{
+                                                            $CustomerTotal+=$JE->je_debit;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        foreach ($ETran as $ss){
+                                            if ($ss->et_customer==$ST){
+                                                foreach ($JournalEntry as $JE){
+                                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED' && $JE->other_no==$ss->et_no){
+                                                        if ($JE->je_credit!="" ){
+                                                            $CustomerTotal-=$JE->je_credit;
+                                                        }else{
+                                                            $CustomerTotal+=$JE->je_debit;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } 
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    ),
+                                    
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++; 
+                               
+                            }
+                            $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $CustomerTotal=0;
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                        foreach ($SS as $ss){
+                                            if ($ss->st_customer_id==$ST){
+                                                foreach ($JournalEntry as $JE){
+                                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->other_no==$ss->st_no){
+                                                        if ($JE->je_credit!=""){
+                                                            $CustomerTotal-=$JE->je_credit;
+                                                        }else{
+                                                            $CustomerTotal+=$JE->je_debit;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        foreach ($ETran as $ss){
+                                            if ($ss->et_customer==$ST){
+                                                foreach ($JournalEntry as $JE){
+                                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->other_no==$ss->et_no){
+                                                        if ($JE->je_credit!=""){
+                                                            $CustomerTotal-=$JE->je_credit;
+                                                        }else{
+                                                            $CustomerTotal+=$JE->je_debit;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } 
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                                $style = array(
+                                    'borders' => array(
+                                        'bottom'     => array(
+                                            'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                            'color' => array(
+                                                'rgb' => '808080'
+                                            )
+                                        )
+                                    ),
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    ),
+                                    'font'    => array(
+                                        'bold'      => true,
+                                    ),
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++; 
+                               
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($TotalOperatingExpense,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $CustomerTotal=0;
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=='Revenues' || $Coa->coa_account_type=='Revenue'){
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!=""){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!=""){
+                                                    $CustomerTotal+=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } 
+                            }
+                        }
+                        $CustomerTotal2=0;
+                        foreach ($COA as $Coa){
+                            if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                foreach ($SS as $ss){
+                                    if ($ss->st_customer_id==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->other_no==$ss->st_no){
+                                                if ($JE->je_credit!=""){
+                                                    $CustomerTotal2-=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal2+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                foreach ($ETran as $ss){
+                                    if ($ss->et_customer==$ST){
+                                        foreach ($JournalEntry as $JE){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'&& $JE->other_no==$ss->et_no){
+                                                if ($JE->je_credit!=""){
+                                                    $CustomerTotal2-=$JE->je_credit;
+                                                }else{
+                                                    $CustomerTotal2+=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } 
+                            }
+                        }
+                        $sheet->setCellValue($addth.$position,number_format($CustomerTotal,2));
+                        $style = array(
+                            'borders' => array(
+                                'top'     => array(
+                                    'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                    'color' => array(
+                                        'rgb' => '808080'
+                                    )
+                                ),
+                                'bottom'     => array(
+                                    'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                    'color' => array(
+                                        'rgb' => '808080'
+                                    )
+                                )
+                            ),
+                            'alignment' => array(
+                                'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                            ),
+                            'font'    => array(
+                                'bold'      => true,
+                                'color' => array('rgb' => 'ffffff'),
+                            ),
+                            'fill' => array(
+                                'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => '95b3d7')
+                            )
+                        );
+                        $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                        $addth++; 
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss by Customer Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function exporttoexcelprofitandlossbymonth(Request $request){
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_by_month.xlsx', function($doc) use($request){
+            date_default_timezone_set('Asia/Manila');
+            $sortsetting="";
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            
+            
+            $date1  = date('Y-m-d',strtotime($FROM));
+            $date2  = date('Y-m-d',strtotime($TO));
+            
+            
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+                $FirstDate= DB::connection('mysql')->select("SELECT * FROM journal_entries  ORDER BY created_at LIMIT 1");
+            
+                date_default_timezone_set('Asia/Manila');
+                
+                $date1  = $FirstDate[0]->je_attachment ;
+                
+                $date2  = date('Y-m-d');  
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $output = [];
+            $time   =strtotime($date1);
+            
+            //return $date1." ".$date2;
+            $last   = date('m-Y', strtotime($date2));
+            
+            do {
+                $month = date('m-Y', $time);
+                $months = date('m', $time);
+                $year = date('Y', $time);
+                $total = date('t', $time);
+                
+                $output[] = [
+                    'month' => $month,
+                    'year' => $year,
+                    'months' => $months,
+                    'total' => $total,
+                ];
+
+                $time = strtotime('+1 month', $time);
+            } while ($month != $last);
+            
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+                                
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->orderBy('display_name', 'ASC')
+                            ->get();
+            
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+            
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $coa_account_type= ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get();
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            $ET_Customer= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    
+                    ->select('et_customer')
+                    ->groupBy('et_customer')
+                    ->orderBy('display_name', 'ASC')
+                    ->get();
+            if($filtertemplate=="All"){
+                
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+                $ET_Customer= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->select('et_customer')
+                    ->groupBy('et_customer')
+                    ->orderBy('display_name', 'ASC')
+                    ->get();
+                $STCustomer= DB::table('sales_transaction')
+                    ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                    ->select('st_customer_id')
+                    ->groupBy('st_customer_id')
+                    ->orderBy('display_name', 'ASC')
+                    ->get();    
+            }        
+            $et_account_details= DB::table('et_account_details')->get();
+            
+            $combinedarray=array();
+            foreach($STCustomer as $ST){
+                foreach($ET_Customer as $SC){
+                    
+                        $combinedarray[]=$SC->et_customer;
+                    
+                }
+            }
+            foreach($ET_Customer as $SC){
+                foreach($STCustomer as $ST){
+                
+                        $combinedarray[]=$ST->st_customer_id;
+                    
+                }
+            
+            }
+            $nodup=array_unique($combinedarray);
+            $STARRAY=array();
+            $emptyArray = array();
+
+            foreach($nodup as $id){
+                
+                foreach ($SalesTransaction as $ST) {
+                    
+                    if($id==$ST->st_customer_id){
+                        //echo $ST->st_no."<br>";
+                        $STARRAY['type']  = "Sales" ;
+                        $STARRAY['st_no']  = $ST->st_no ;
+                        $STARRAY['st_customer_id']  = $ST->st_customer_id ;
+                        $STARRAY['st_type']  = $ST->st_type ;
+                        $STARRAY['st_date']  = $ST->st_date ;
+                        $STARRAY['st_amount_paid']  = $ST->st_amount_paid ;
+                        $STARRAY['et_date']  = "None";
+                        $STARRAY['et_no']  = "None" ;
+                        $STARRAY['et_customer']  = "None";
+                        $STARRAY['et_type']  = "None";
+                        $STARRAY['remark']  = $ST->remark;
+                        array_push($emptyArray, $STARRAY);
+                        
+                    }
+                }
+                foreach ($expense_transactions as $ET) {
+                    if($id==$ET->et_customer){
+                        $STARRAY['st_no']  = "None" ;
+                        $STARRAY['st_customer_id']  = "None";
+                        $STARRAY['st_type']  ="None";
+                        $STARRAY['st_amount_paid']  = "0";
+                        $STARRAY['st_date']  = "None";
+                        $STARRAY['type']  = "Expense" ;
+                        $STARRAY['et_no']  = $ET->et_no ;
+                        $STARRAY['et_date']  = $ET->et_date ;
+                        $STARRAY['et_customer']  = $ET->et_customer ;
+                        $STARRAY['et_type']  = $ET->et_type ;
+                        $STARRAY['remark']  = $ET->remark;
+                        array_push($emptyArray, $STARRAY);
+                    }
+                }
+                
+                
+            }
+            $position=4;
+            $sheet = $doc->setActiveSheetIndex(0);
+            $addth="D";
+            foreach ($output as $cus){
+            $sheet->setCellValue($addth.$position,$cus['month']);
+            $style = array(
+                
+                'font'    => array(
+                    'bold'      => true,
+                    'color' => array('rgb' => 'ffffff'),
+                ),
+                'fill' => array(
+                    'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                    'color' => array('rgb' => '95b3d7')
+                )
+            );
+            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+            $sheet->getColumnDimension($addth)->setWidth(30);
+            $sheet->getStyle($addth.$position)->applyFromArray($style);
+            $addth++;
+            }
+            $sheet->setCellValue($addth.$position,"Total");
+            $style = array(
+                
+                'font'    => array(
+                    'bold'      => true,
+                    'color' => array('rgb' => 'ffffff'),
+                ),
+                'fill' => array(
+                    'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                    'color' => array('rgb' => '95b3d7')
+                )
+            );
+            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+            $sheet->getColumnDimension($addth)->setWidth(30);
+            $sheet->getStyle($addth.$position)->applyFromArray($style);
+            $position++;   
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $GrossProfit=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $addth="D";
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            foreach ($output as $ST){
+                                
+                                $coa_month=0;
+                                foreach ($JournalEntry as $JE){
+                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_month+=$JE->je_credit;
+                                            }else{
+                                                $coa_month-=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    )
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                                
+                            }
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue($addth.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $coa_month=0;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                                    foreach ($JournalEntry as $JE){
+                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_month+=$JE->je_credit;
+                                                }else{
+                                                    $coa_month-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $addth++;
+                        
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $addth="D";
+            foreach ($output as $ST){
+                
+                    $coa_month=0;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                            foreach ($JournalEntry as $JE){
+                                if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                    if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                        if ($JE->je_credit!=""){
+                                            $coa_month+=$JE->je_credit;
+                                        }else{
+                                            $coa_month-=$JE->je_debit;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $addth++;
+            }
+            $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $addth="D";
+                            foreach ($output as $ST){
+                                
+                                $coa_month=0;
+                                foreach ($JournalEntry as $JE){
+                                    if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_month+=$JE->je_credit;
+                                            }else{
+                                                $coa_month-=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    )
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                            }
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue($addth.$position,number_format($coa_name_total,2));
+                            
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $coa_month=0;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type=="Cost of Sales"){
+                                    foreach ($JournalEntry as $JE){
+                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_month+=$JE->je_credit;
+                                                }else{
+                                                    $coa_month-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $addth++;
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $coa_month=0;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type=="Cost of Sales"){
+                                    foreach ($JournalEntry as $JE){
+                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_month+=$JE->je_credit;
+                                                }else{
+                                                    $coa_month-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                            $style = array(
+                                'borders' => array(
+                                    'bottom'     => array(
+                                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                        'color' => array(
+                                            'rgb' => '808080'
+                                        )
+                                    )
+                                ),
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $addth++;
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $position++;
+                    $addth="D";
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    foreach ($output as $ST){
+                        
+                        $coa_month=0;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type=="Cost of Sales" || $Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue"){
+                                    foreach ($JournalEntry as $JE){
+                                        if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                            if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                if ($JE->je_credit!=""){
+                                                    $coa_month+=$JE->je_credit;
+                                                }else{
+                                                    $coa_month-=$JE->je_debit;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                            $style = array(
+                                'borders' => array(
+                                    'top'     => array(
+                                        'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                        'color' => array(
+                                            'rgb' => '808080'
+                                        )
+                                    ),
+                                    'bottom'     => array(
+                                        'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                        'color' => array(
+                                            'rgb' => '808080'
+                                        )
+                                    )
+                                ),
+                                'font'    => array(
+                                    'bold'      => true,
+                                    'color' => array('rgb' => 'ffffff'),
+                                ),
+                                'fill' => array(
+                                    'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                    'color' => array('rgb' => '95b3d7')
+                                )
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $addth++;
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($GrossProfit,2));
+
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $addth="D";
+                                    foreach ($output as $ST){
+                                        
+                                        $coa_month=0;
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $coa_month-=$JE->je_credit;
+                                                    }else{
+                                                        $coa_month+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                                        $style = array(
+                                            'alignment' => array(
+                                                'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                            )
+                                        );
+                                        $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                        $addth++;
+                                    }
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue($addth.$position,number_format($coa_name_total,2));
+                                    
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $addth="D";
+                            foreach ($output as $ST){
+                                
+                                $coa_month=0;
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_account_type==$coa->coa_account_type){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $coa_month-=$JE->je_credit;
+                                                    }else{
+                                                        $coa_month+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                                $style = array(
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    )
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                            }
+                            $sheet->setCellValue($addth.$position,number_format($IncomeTotal,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                
+                            );
+                            $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                        $coa_month=0;
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $coa_month-=$JE->je_credit;
+                                                    }else{
+                                                        $coa_month+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($coa_month,2));
+                                $style = array(
+                                    'borders' => array(
+                                        'bottom'     => array(
+                                            'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                            'color' => array(
+                                                'rgb' => '808080'
+                                            )
+                                        )
+                                    ),
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    ),
+                                    'font'    => array(
+                                        'bold'      => true,
+                                    ),
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                    }
+                    
+                    $sheet->setCellValue($addth.$position,number_format($TotalOperatingExpense,2));
+                    
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $addth="D";
+                    foreach ($output as $ST){
+                        
+                                $coa_month=0;
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_account_type=="Revenues" || $Coa->coa_account_type=="Revenue" || $Coa->coa_account_type=="Cost of Sales"){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $coa_month+=$JE->je_credit;
+                                                    }else{
+                                                        $coa_month-=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $coa_month2=0;
+                                foreach ($COA as $Coa){
+                                    if ($Coa->coa_title=="Expenses" && $Coa->coa_account_type!="Cost of Sales"){
+                                        foreach ($JournalEntry as $JE){
+                                            if(date('Y-m-d',strtotime($JE->je_attachment))>=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-01")) && date('Y-m-d',strtotime($JE->je_attachment))<=date('Y-m-d',strtotime($ST['year']."-".$ST['months']."-".$ST['total']))){
+                                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                                    if ($JE->je_credit!=""){
+                                                        $coa_month2-=$JE->je_credit;
+                                                    }else{
+                                                        $coa_month2+=$JE->je_debit;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $sheet->setCellValue($addth.$position,number_format($coa_month-$coa_month2,2));
+                                $style = array(
+                                    'borders' => array(
+                                        'top'     => array(
+                                            'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                            'color' => array(
+                                                'rgb' => '808080'
+                                            )
+                                        ),
+                                        'bottom'     => array(
+                                            'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                            'color' => array(
+                                                'rgb' => '808080'
+                                            )
+                                        )
+                                    ),
+                                    'alignment' => array(
+                                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                    ),
+                                    'font'    => array(
+                                        'bold'      => true,
+                                        'color' => array('rgb' => 'ffffff'),
+                                    ),
+                                    'fill' => array(
+                                        'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                        'color' => array('rgb' => '95b3d7')
+                                    )
+                                );
+                                $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                                $addth++;
+                            
+                    }
+                    $sheet->setCellValue($addth.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle($addth.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss By Month Report '.date('m-d-Y'))->download('xlsx'); 
+    }
+    public function export_profitandlosscomparison(Request $request){
+        
+        Excel::load('extra/export_report/export_report_template_profit_and_loss_comparison.xlsx', function($doc) use($request){
+            date_default_timezone_set('Asia/Manila');
+            $sortsetting="";
+            $sortsettingjournal="";
+            $sortsettingjournalpv="";
+            $FROM=date('Y-01-01');
+            $TO=date('Y-12-31');
+            $FROMpv=strtotime($FROM.' -1 year');
+            $TOpv=strtotime($TO.' -1 year');
+            $DateRange="Total";
+            $DateRangepy="Total(PY)";
+            $filtertemplate="Custom";
+            $CostCenterFilter="All";
+            
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingpv="";
+                $sortsettingjournal="";
+                $sortsettingjournalpv="";
+            }else{
+                $FROMpv=strtotime($FROM.' -1 year');
+                $TOpv=strtotime($TO.' -1 year');
+                $FROMpv=date('Y-m-d', $FROMpv);
+                $TOpv=date('Y-m-d', $TOpv);
+                $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+                $sortsettingpv="WHERE st_date BETWEEN '".$FROMpv."' AND '".$TOpv."'";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+                $sortsettingjournalpv="WHERE created_at BETWEEN '".$FROMpv."' AND '".$TOpv."' AND";
+                $DateRange=date('m-d-Y',strtotime($FROM))."to".date('m-d-Y',strtotime($TO));
+                $DateRangepy=date('m-d-Y',strtotime($FROMpv))."to".date('m-d-Y',strtotime($TOpv));
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+                $sortjournalpv="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+                $sortjournalpv=" je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortjournalpv="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                $sortsettingjournalpv="WHERE created_at BETWEEN '".$FROMpv."' AND '".$TOpv."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingpv="";
+                    $sortsettingjournal="";
+                    $sortsettingjournalpv="";
+                }
+            }
+            
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $SalesTransactionpv= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsettingpv." 
+                                ORDER BY st_no ASC");                   
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $JournalEntrypv= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournalpv.$sortjournalpv." 
+                                ORDER BY created_at ASC");
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            $date = date('l, d F Y h:i a \G\T\MO');
+           
+            $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->get();
+            $expense_transactionspv= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->whereBetween('et_date', [$FROMpv, $TOpv])
+                    ->get();
+            if($filtertemplate=="All"){
+                $expense_transactionspv= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                    ->get();
+            }
+            $coa_account_type=ChartofAccount::groupBy('coa_account_type')->orderBy('coa_detail_type','ASC')->get(); 
+            $cost_center_list= CostCenter::where('cc_status','1')->orderBy('cc_type_code', 'asc')->get();         $all_cost_center_list= CostCenter::all();         $all_cost_center_list= CostCenter::all();
+            
+            $et_account_details= DB::table('et_account_details')->get();
+            $position=4;
+            $sheet = $doc->setActiveSheetIndex(0);
+            
+            $sheet->setCellValue('D'.$position,$DateRange);
+            $sheet->setCellValue('E'.$position,$DateRangepy);
+            $position++;
+            $sheet->setCellValue('B'.$position,"Income");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+            $IncomeTotal=0;
+            $IncomeTotalpv=0;
+            $GrossProfit=0;
+            $GrossProfitpv=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Revenues" || $coa->coa_account_type=="Revenue"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type==$coa->coa_account_type){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv+=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv-=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv+=$coa_name_totalpv;
+                            $sheet->setCellValue('E'.$position,number_format($coa_name_totalpv,2));
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+    
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Revenue");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    
+                    
+                }
+            }
+            $sheet->setCellValue('B'.$position,"Total Income");
+            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+            $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+            
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $style = array(
+                'borders' => array(
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+            $position++;
+            $GrossProfit+=$IncomeTotal;
+            $GrossProfitpv+=$IncomeTotalpv;
+            $position++;
+            $sheet->setCellValue('B'.$position,"Less Cost of Sales");
+            $sheet->setCellValue('D'.$position,"");
+            
+            $style = array(
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $position++;
+
+            $IncomeTotal=0;
+            foreach ($coa_account_type as $coa){
+                if ($coa->coa_account_type=="Cost of Sales"){
+                    $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $position++;
+                    foreach ($COA as $Coa){
+                        if ($Coa->coa_account_type=="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                            $coa_name_total=0;
+                            foreach ($JournalEntry as $JE){
+                                
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_total+=$JE->je_credit;
+                                        
+                                    }else{
+                                        $coa_name_total-=$JE->je_debit;
+                                        
+                                    }
+                                }
+                            }
+                            $IncomeTotal+=$coa_name_total;
+                            $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                            $coa_name_totalpv=0;
+                            foreach ($JournalEntrypv as $JE){
+                                if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                    if ($JE->je_credit!=""){
+                                        $coa_name_totalpv+=$JE->je_credit;
+                                    }else{
+                                        $coa_name_totalpv-=$JE->je_debit;
+                                    }
+                                }
+                            }
+                            $IncomeTotalpv+=$coa_name_totalpv;
+                            $sheet->setCellValue('E'.$position,number_format($coa_name_totalpv,2));
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                )
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                            $position++;
+                            
+                        }
+
+                    }
+                    $sheet->setCellValue('C'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                }
+            }
+                    
+                    $sheet->setCellValue('B'.$position,"Total Cost of Sales");
+                    $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $GrossProfit+=$IncomeTotal;
+                    $GrossProfitpv+=$IncomeTotalpv;
+                    $position++;
+
+                    $sheet->setCellValue('B'.$position,"Gross Profit");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit,2));
+                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $position++;
+                    //expense
+                    $sheet->setCellValue('B'.$position,"Less Operating Expenses");
+                    $sheet->setCellValue('D'.$position,"");
+                    
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $TotalOperatingExpense=0;
+                    $TotalOperatingExpensepv=0;
+                    foreach ($coa_account_type as $coa){
+                        $IncomeTotal=0;
+                        $IncomeTotalpv=0;
+                        if ($coa->coa_title=="Expenses" && $coa->coa_account_type!="Cost of Sales"){
+                            $sheet->setCellValue('C'.$position,$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,"");
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $position++;
+                            foreach ($COA as $Coa){
+                                if ($Coa->coa_account_type==$coa->coa_account_type){
+                                    $sheet->setCellValue('C'.$position,$Coa->coa_name);
+                                    $coa_name_total=0;
+                                    foreach ($JournalEntry as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_total-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_total+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotal+=$coa_name_total;
+                                    $sheet->setCellValue('D'.$position,number_format($coa_name_total,2));
+                                    $coa_name_totalpv=0;
+                                    foreach ($JournalEntrypv as $JE){
+                                        if ($JE->je_account==$Coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                                            if ($JE->je_credit!=""){
+                                                $coa_name_totalpv-=$JE->je_credit;
+                                            }else{
+                                                $coa_name_totalpv+=$JE->je_debit;
+                                            }
+                                        }
+                                    }
+                                    $IncomeTotalpv+=$coa_name_totalpv;
+                                    $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                                    $style = array(
+                                        'alignment' => array(
+                                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                        )
+                                    );
+                                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                                    $position++;
+
+                                }
+                            }
+                            $sheet->setCellValue('C'.$position,'Total '.$coa->coa_account_type);
+                            $sheet->setCellValue('D'.$position,number_format($IncomeTotal,2));
+                            $sheet->setCellValue('E'.$position,number_format($IncomeTotalpv,2));
+                            
+                            $style = array(
+                                'font'    => array(
+                                    'bold'      => true,
+                                ),
+                            );
+                            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                            $style = array(
+                                'alignment' => array(
+                                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                                ),
+                                
+                            );
+                            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                            $position++;
+                        }
+                        $TotalOperatingExpense+=$IncomeTotal;
+                        $TotalOperatingExpensepv+=$IncomeTotalpv;
+                    }
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Total Operating Expenses");
+                    $sheet->setCellValue('D'.$position,number_format($TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,number_format($TotalOperatingExpensepv,2));
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                        ),
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $position++;
+                    $sheet->setCellValue('B'.$position,"Net Income");
+                    $sheet->setCellValue('D'.$position,number_format($GrossProfit-$TotalOperatingExpense,2));
+                    $sheet->setCellValue('E'.$position,number_format($GrossProfitpv-$TotalOperatingExpensepv,2));
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+                    $style = array(
+                        'borders' => array(
+                            'top'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            ),
+                            'bottom'     => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                                'color' => array(
+                                    'rgb' => '808080'
+                                )
+                            )
+                        ),
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        ),
+                        'font'    => array(
+                            'bold'      => true,
+                            'color' => array('rgb' => 'ffffff'),
+                        ),
+                        'fill' => array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '95b3d7')
+                        )
+                    );
+                    
+                    $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+    
+
+    
+    
+    
+        })->setFilename('Profit And Loss Comparison Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function export_trial_balance(Request $request){
+        Excel::load('extra/export_report/export_report_template_trial_balance.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            $before="WHERE st_date <='".$TO."'";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $before="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" je_cost_center='".$CostCenterFilter."'";
+            }
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$before." 
+                                ORDER BY st_no ASC");
+            $SalesTransaction2= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$before." 
+                                ORDER BY st_no ASC");
+            $STCustomer= DB::table('sales_transaction')
+                            ->join('customers', 'customers.customer_id', '=', 'sales_transaction.st_customer_id')
+                            ->select('st_customer_id')
+                            ->groupBy('st_customer_id')
+                            ->get();
+                            //whereBetween('created_at', [$FROM, $TO])
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortsettingjournal.$sortjournal." 
+                                ORDER BY created_at ASC");
+            $COA= ChartofAccount::where('coa_active','1')->orderBy('coa_title','ASC')->get();
+            $jounal = DB::table('journal_entries')
+                    ->select('je_no')
+                    ->groupBy('je_no')
+                    ->get();
+            $jounalcount=count($jounal)+1;
+            date_default_timezone_set('Asia/Manila');
+            $date = date('l, d F Y h:i a \G\T\MO');
+           
+            $expense_transactions= DB::table('expense_transactions')
+                    ->whereBetween('et_date', [$FROM, $TO])
+                    ->join('et_account_details', 'et_account_details.et_ad_no', '=', 'expense_transactions.et_no')
+                    ->get();
+            if($filtertemplate=="All"){
+                //$JournalEntry = JournalEntry::where([['remark','!=','NULLED']])->orWhereNull('remark')->orderBy('created_at','ASC')->get();
+                $expense_transactions= DB::table('expense_transactions')
+                    ->join('et_account_details', 'et_account_details.et_ad_no', '=', 'expense_transactions.et_no')
+                    ->get();
+            }
+            $cost_center_list=CostCenter::all();
+            $AccountRecievable=0;
+            $Cash=0;
+            $Sales=0;
+            $ExpensesTotal=0;
+            
+            $coa_name_totaldebit=0;
+            $coa_name_totalcredit=0;
+            $position=5;
+            $sheet = $doc->setActiveSheetIndex(0);
+            foreach ($COA as $coa){
+                $coa_name_total=0;
+                $coa_name_totalc=0;
+                $coa_name_totald=0;
+                foreach ($JournalEntry as $JE){
+                    if ($JE->je_account==$coa->id && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                        if ($JE->je_credit!="" && $JE->remark!='Cancelled' && $JE->remark!='NULLED'){
+                            $coa_name_totalc+=$JE->je_credit;
+                            $coa_name_total+=$JE->je_credit;
+                        }else{
+                            $coa_name_totald+=$JE->je_debit;
+                            $coa_name_total-=$JE->je_debit;
+                        }
+                    }
+                }
+                if ($coa_name_totalc!=0 || $coa_name_totald!=0){
+                    if($coa_name_totalc==$coa_name_totald){
+
+                    }else{
+                        
+                    }
+                    $debit=0;
+                    $credit=0;
+                    if($coa_name_totalc<$coa_name_totald){
+                        $debit=$coa_name_totalc-$coa_name_totald;
+                        if($debit<0){
+                            $debit*=-1;
+                        }
+                        $credit="";
+                    }else if($coa_name_totalc>$coa_name_totald){
+                        $debit="";
+                        $credit=$coa_name_totalc-$coa_name_totald;
+                        if($credit<0){
+                            $credit*=-1;
+                        }
+                    }
+                    $sheet->setCellValue('B'.$position,$coa->coa_title);
+                    $sheet->setCellValue('C'.$position,$coa->coa_name);
+                    $sheet->setCellValue('D'.$position,($debit!=""? number_format($debit,2) : ''));
+                    $sheet->setCellValue('E'.$position,($credit!=""? number_format($credit,2): ''));
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                        )
+                    );
+                    $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+                    $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+                    $coa_name_totaldebit+=$coa_name_totald;
+                    $coa_name_totalcredit+=$coa_name_totalc;
+                    $position++;
+                }
+                
+            }
+            
+            $sheet->setCellValue('D'.$position,number_format($coa_name_totaldebit,2));
+            $sheet->setCellValue('E'.$position,number_format($coa_name_totalcredit,2));
+            $style = array(
+                'borders' => array(
+                    'top'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_DOUBLE,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    ),
+                    'bottom'     => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THICK,
+                        'color' => array(
+                            'rgb' => '808080'
+                        )
+                    )
+                ),
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                ),
+                'font'    => array(
+                    'bold'      => true,
+                ),
+            );
+            $sheet->getStyle('B'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('C'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('D'.$position.'')->applyFromArray($style);
+            $sheet->getStyle('E'.$position.'')->applyFromArray($style);
+        })->setFilename('Trial Balance Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function exporttoexcelTaxRelief(Request $request){
+        Excel::load('extra/export_report/export_report_template_tax_relief.xlsx', function($doc) use($request){
+            $FROM=$request->FROM;
+            $TO=$request->TO;
+            $filtertemplate=$request->filtertemplate;
+            $CostCenterFilter=$request->CostCenterFilter;
+            $filtertemplate=$request->filtertemplate;
+            $sortsetting="WHERE st_date BETWEEN '".$FROM."' AND '".$TO."'";
+            $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."' AND";
+            if($filtertemplate=="All"){
+                $sortsetting="";
+                $sortsettingjournal="";
+            }
+            if($sortsettingjournal==""){
+                $sortjournal="WHERE je_cost_center='".$CostCenterFilter."'";
+            }else{
+                $sortjournal=" WHERE je_cost_center='".$CostCenterFilter."'";
+            }
+            
+            if($CostCenterFilter=="All" || $CostCenterFilter=="By Cost Center"){
+                $sortjournal="";
+                $sortsettingjournal="WHERE created_at BETWEEN '".$FROM."' AND '".$TO."'";
+                if($filtertemplate=="All"){
+                    $sortsetting="";
+                    $sortsettingjournal="";
+                }
+            }
+            $JournalEntry= DB::connection('mysql')->select("SELECT * FROM journal_entries
+                                ".$sortjournal." 
+                                ORDER BY created_at ASC");
+            $SalesTransaction= DB::connection('mysql')->select("SELECT * FROM sales_transaction
+                                JOIN customers ON sales_transaction.st_customer_id=customers.customer_id
+                                ".$sortsetting." 
+                                ORDER BY st_no ASC");
+            $st_invoice= DB::connection('mysql')->select("SELECT * FROM st_invoice");
+            $st_credit_notes= DB::connection('mysql')->select("SELECT * FROM st_credit_notes");
+            $st_estimates= DB::connection('mysql')->select("SELECT * FROM st_estimates");
+            $st_delayed_charges= DB::connection('mysql')->select("SELECT * FROM st_delayed_charges");
+            $st_delayed_credit= DB::connection('mysql')->select("SELECT * FROM st_delayed_credits");
+            $st_refund_receipts= DB::connection('mysql')->select("SELECT * FROM st_refund_receipts");
+            $st_sales_receipts= DB::connection('mysql')->select("SELECT * FROM st_sales_receipts");
+            $Supplier= Supplier::orderBy('display_name', 'ASC')->get();
+            $customers = Customers::orderBy('display_name', 'ASC')->get();
+            $products_and_services = ProductsAndServices::orderBy('product_name', 'ASC')->get();
+            $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->whereBetween('et_date', [$FROM, $TO])
+                ->get();
+            if($filtertemplate=="All"){
+                $expense_transactions = DB::table('expense_transactions')
+                ->join('et_account_details', 'expense_transactions.et_no', '=', 'et_account_details.et_ad_no')
+                ->join('customers', 'customers.customer_id', '=', 'expense_transactions.et_customer')
+                ->get();
+            }
+            $cost_center_list=CostCenter::all();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $tablecontent="";
+            
+            $totaltaxall=0;
+            $withheldtotal=0;
+            $netamounttotal=0;
+            $columncount=3;
+            $sheet = $doc->setActiveSheetIndex(0);
+            foreach($expense_transactions as $et){
+                $sheet->setCellValue('B'.$columncount,$et->tin_no);
+                $sheet->setCellValue('C'.$columncount,($et->display_name!=""? $et->display_name : $et->f_name." ".$et->l_name ));
+                $sheet->setCellValue('D'.$columncount,$et->street." ".$et->city." ".$et->state." ".$et->postal_code." ".$et->country);
+                $sheet->setCellValue('E'.$columncount,number_format($et->et_ad_total,2));
+                $sheet->setCellValue('F'.$columncount,date('m-d-Y',strtotime($et->et_date)));
+                $sheet->setCellValue('G'.$columncount,$et->et_no);
+                $sheet->setCellValue('H'.$columncount,"");
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                    )
+                );
+                $sheet->getStyle('E'.$columncount.'')->applyFromArray($style);
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_LEFT,
+                    )
+                );
+                $sheet->getStyle('B'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('C'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('D'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('F'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('G'.$columncount.'')->applyFromArray($style);
+                $sheet->getStyle('H'.$columncount.'')->applyFromArray($style);
+                $columncount++;
+            }
+        
+        })->setFilename('Tax Relief Report '.date('m-d-Y'))->download('xlsx');
+    }
+    public function GetInvoiceExcelTemplateBill(Request $request){
+        Excel::load('extra/edit_excel/bill.xlsx', function($doc) {
+             $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+            $cost_center_list= CostCenter::where('cc_status','1')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $sheet2 = $doc->setActiveSheetIndex(1);
+            $sheet3 = $doc->setActiveSheetIndex(2);
+            $sheet4 = $doc->setActiveSheetIndex(3);
+            $sheet = $doc->setActiveSheetIndex(0);
+            $sheet->getStyle("B")
+                    ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+            $sheet->getStyle("C")
+                    ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);        
+            $cuss=0;
+            $cccc=0;
+            $oro=0;
+            foreach($customers as $cus){
+                $cuss++;
+                $sheet2->setCellValue('A'.$cuss, $cus->customer_id." -- ".($cus->display_name==""? $cus->f_name." ".$cus->l_name : $cus->display_name));
+                
+                
+            }
+            foreach($COA as $coa){
+                $oro++;
+                $sheet4->setCellValue('A'.$oro, $coa->coa_code);
+                // $sheet4->setCellValue('B'.$oro, $coa->coa_name);
+                
+            }
+            foreach($cost_center_list as $ccl){
+                $cccc++;
+                $sheet3->setCellValue('A'.$cccc, $ccl->cc_name_code);
+                //$sheet3->setCellValue('B'.$cccc, $ccl->cc_name);
+            }
+            for($c=1;$c<=$cccc+$cuss+$oro;$c++){
+                // $sheet->$doc->addNamedRange(
+                //     new \PHPExcel_NamedRange(
+                //     'Accounts', $sheet, 'L1:L'.$oro
+                //     )
+                // );
+                $cplus=$c+1;
+                $objValidation = $sheet->getCell('D'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('CostCenter!$A:$A');
+    
+                $objValidation = $sheet->getCell('E'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('Clients!$A:$A');
+    
+                $objValidation = $sheet->getCell('I'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$A:$A');
+                $objValidation = $sheet->getCell('L'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$A:$A');
+    
+                
+                
+                //$objValidation->setFormula1('Accounts'); //note this!
+            }
+            })->setFilename('Import Template for Bill '.date('m-d-Y'))->download('xlsx');
+    }
+    public function GetInvoiceExcelTemplate(Request $request){
+        Excel::load('extra/edit_excel/invoice.xlsx', function($doc) {
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        $cost_center_list= CostCenter::where('cc_status','1')->get();
+        $COA= ChartofAccount::where('coa_active','1')->get();
+        $sheet2 = $doc->setActiveSheetIndex(1);
+        $sheet3 = $doc->setActiveSheetIndex(2);
+        $sheet4 = $doc->setActiveSheetIndex(3);
+        $sheet = $doc->setActiveSheetIndex(0);
+        $sheet->getStyle("D")
+                ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+        $sheet->getStyle("E")
+                ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);        
+        $cuss=0;
+        $cccc=0;
+        $oro=0;
+        foreach($customers as $cus){
+            $cuss++;
+            $sheet2->setCellValue('A'.$cuss, $cus->customer_id." -- ".($cus->display_name==""? $cus->f_name." ".$cus->l_name : $cus->display_name));
+            
+            
+        }
+        foreach($COA as $coa){
+            $oro++;
+            $sheet4->setCellValue('A'.$oro, $coa->id." -- ".$coa->coa_name);
+            // $sheet4->setCellValue('B'.$oro, $coa->coa_name);
+            
+        }
+        foreach($cost_center_list as $ccl){
+            $cccc++;
+            $sheet3->setCellValue('A'.$cccc, $ccl->cc_no." -- ".$ccl->cc_name);
+            //$sheet3->setCellValue('B'.$cccc, $ccl->cc_name);
+        }
+        for($c=1;$c<=$cccc+$cuss+$oro;$c++){
+            // $sheet->$doc->addNamedRange(
+            //     new \PHPExcel_NamedRange(
+            //     'Accounts', $sheet, 'L1:L'.$oro
+            //     )
+            // );
+            $cplus=$c+1;
+            $objValidation = $sheet->getCell('F'.$cplus)->getDataValidation();
+            $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+            
+            $objValidation->setShowDropDown( true );
+            $objValidation->setFormula1('CostCenter!$A:$A');
+
+            $objValidation = $sheet->getCell('G'.$cplus)->getDataValidation();
+            $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+            
+            $objValidation->setShowDropDown( true );
+            $objValidation->setFormula1('Clients!$A:$A');
+
+            $objValidation = $sheet->getCell('M'.$cplus)->getDataValidation();
+            $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+            
+            $objValidation->setShowDropDown( true );
+            $objValidation->setFormula1('ChartofAccounts!$A:$A');
+            $objValidation = $sheet->getCell('N'.$cplus)->getDataValidation();
+            $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+            
+            $objValidation->setShowDropDown( true );
+            $objValidation->setFormula1('ChartofAccounts!$A:$A');
+
+            $objValidation = $sheet->getCell('B'.$cplus)->getDataValidation();
+            $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+            
+            $objValidation->setShowDropDown( true );
+            $objValidation->setFormula1('Clients!$Y1:$Y2');
+            $objValidation = $sheet->getCell('C'.$cplus)->getDataValidation();
+            $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+            
+            $objValidation->setShowDropDown( true );
+            $objValidation->setFormula1('Clients!$Z1:$Z2');
+            
+            //$objValidation->setFormula1('Accounts'); //note this!
+        }
+        })->setFilename('Import Template for Invoice '.date('m-d-Y'))->download('xlsx');
+
+    }
+    public function GetJournalEntryTemplateExcel(Request $request){
+        
+        //Excel::load('extra/edit_excel/Mass Adjustment Template.xlsx', function($file) {
+            Excel::load('extra/edit_excel/Journal_Import Data.xlsx', function($doc) {
+                $COA= ChartofAccount::where('coa_active','1')->get();
+                 $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+                $cost_center_list= CostCenter::where('cc_status','1')->get();
+                $sheet = $doc->setActiveSheetIndex(1);
+                $sheet2 = $doc->setActiveSheetIndex(2);
+                $sheet3 = $doc->setActiveSheetIndex(3);
+                $sheet1 = $doc->setActiveSheetIndex(0);
+                $sheet1->getStyle("A")
+                ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+                $sheet1->getStyle("L")
+                ->getNumberFormat()->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+            $oro=0;
+            $cuss=0;
+            $cccc=0;
+            foreach($COA as $coa){
+                $oro++;
+                $sheet->setCellValue('A'.$oro, $coa->coa_code);
+                $sheet->setCellValue('B'.$oro, $coa->coa_name);
+                
+            }
+            foreach($customers as $cus){
+                $cuss++;
+                $sheet2->setCellValue('A'.$cuss, $cus->display_name==""? $cus->f_name." ".$cus->l_name : $cus->display_name);
+                
+            }
+
+            foreach($cost_center_list as $ccl){
+                $cccc++;
+                $sheet3->setCellValue('A'.$cccc, $ccl->cc_name_code);
+                $sheet3->setCellValue('B'.$cccc, $ccl->cc_name);
+            }
+            
+            for($c=1;$c<=$oro+$cuss;$c++){
+                // $sheet->$doc->addNamedRange(
+                //     new \PHPExcel_NamedRange(
+                //     'Accounts', $sheet, 'L1:L'.$oro
+                //     )
+                // );
+                $cplus=$c+1;
+                $objValidation = $sheet1->getCell('C'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$A:$A');
+
+                $objValidation = $sheet1->getCell('G'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('Names!$A:$A');
+
+                // $objValidation = $sheet1->getCell('B'.$cplus)->getDataValidation();
+                // $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                // $objValidation->setShowDropDown( true );
+                // $objValidation->setFormula1('CostCenter!$A:$A');
+
+                $objValidation = $sheet1->getCell('J'.$cplus)->getDataValidation();
+                $objValidation->setType(\PHPExcel_Cell_DataValidation::TYPE_LIST);
+                
+                $objValidation->setShowDropDown( true );
+                $objValidation->setFormula1('ChartofAccounts!$I2:$I3');
+                
+                //$objValidation->setFormula1('Accounts'); //note this!
+            }
+            })->setFilename('Import Template for Journal Entry '.date('m-d-Y'))->download('xlsx');
+    }
+    public function GetCustomerTemplateExcel(Request $request){
+        Excel::load('extra/edit_excel/Customer_Import Data.xlsx', function($doc) {
+        
+        })->setFilename('Import Template for Customer '.date('m-d-Y'))->download('xlsx');
+    }
+    public function GetChartofAccountsExcelemplate(Request $request){
+        Excel::load('extra/edit_excel/coa.xlsx', function($doc) {
+        
+        })->setFilename('Import Template for Chart of Account '.date('m-d-Y'))->download('xlsx');
+    }
+    
+    public function GetSupplierTemplateExcel(Request $request){
+        Excel::load('extra/edit_excel/Supplier_Import Data.xlsx', function($doc) {
+        
+        })->setFilename('Import Template for Supplier '.date('m-d-Y'))->download('xlsx');
+    }
+    public function GetChartofCostCenterExcelemplate(Request $request){
+        
+        Excel::load('extra/edit_excel/Cost_Center_Import_Data.xlsx', function($doc) {
+        
+        
+        })->setFilename('Import Template for Cost Center '.date('m-d-Y'))->download('xlsx');
+    }
+    public function export_ledger_to_excel(Request $request){
+        Excel::load('extra/edit_excel/Export_Sub_Ledger.xlsx', function($doc) use($request) {
+            $sheet = $doc->setActiveSheetIndex(0);    
+            $customer_id=$request->customer;
+            $coa_id=$request->coa_id;
+            $date=$request->date;
+            $no=$request->no;
+            $Description=$request->Description;
+            $Debit=$request->Debit;
+            $Credit=$request->Credit;
+            $TotalRow=$request->TotalRow;
+            if($customer_id!=""){
+                $customer= Customers::where('customer_id',$customer_id)->first();
+                $sheet->setCellValue('A2', $customer->display_name!=""? $customer->display_name : ($customer->company_name!=""? $customer->company_name : $customer->f_name." ".$customer->l_name ));
+            }else{
+                $sheet->setCellValue('A2', "");
+            }
+            $COA= ChartofAccount::where('id',$coa_id)->first();
+            $sheet->setCellValue('A4', $COA->coa_name);
+            $countloop=0;
+            $position=5;
+            foreach($date as $da){
+                $sheet->setCellValue('A'.$position, $da);
+                $sheet->setCellValue('B'.$position, $no[$countloop]);
+                $sheet->setCellValue('C'.$position, $Description[$countloop]);
+                $sheet->setCellValue('D'.$position, $Debit[$countloop]);
+                $sheet->setCellValue('E'.$position, $Credit[$countloop]);
+
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                    )
+                );
+                
+                $sheet->getStyle('B'.$position)->applyFromArray($style);
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                    )
+                );
+            
+                $sheet->getStyle('D'.$position)->applyFromArray($style);
+                $sheet->getStyle('E'.$position)->applyFromArray($style);
+                $position++;
+                $countloop++;
+            }
+            $sheet->setCellValue('A'.$position, $TotalRow[0]);
+            $sheet->setCellValue('D'.$position, $TotalRow[1]);
+            $sheet->setCellValue('E'.$position, $TotalRow[2]);
+            $style = array(
+                'alignment' => array(
+                    'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                )
+            );
+        
+            $sheet->getStyle('D'.$position)->applyFromArray($style);
+            $sheet->getStyle('E'.$position)->applyFromArray($style);
+            $styleArray = array(
+                'borders' => array(
+                    'allborders' => array(
+                        'style' => \PHPExcel_Style_Border::BORDER_THIN
+                    )
+                )
+            );
+            $sheet->getStyle('A'.$position.':E'.$position.'')->applyFromArray($styleArray);
+            $sheet->mergeCells('A'.$position.':C'.$position.'');
+        })->setFilename('Export_Sub_Ledger')->store('xlsx', storage_path('app/exports'));
+        return 'Export_Sub_Ledger';
+
+    }
+    public function getfile(Request $request){
+        return Storage::download('exports/Export_Sub_Ledger.xlsx');
+    }
+    public function GetBudgetTemplateExcel_Bid_of_Quotation(Request $request){
+        $cc_no=$request->cc;
+        $cost_center_list= CostCenter::orderBy('cc_type_code')->get();
+        Excel::load('extra/edit_excel/bid_of_quotation.xlsx', function($doc) use($request) {
+            $cc_no=$request->cc;
+            $cost_center_list= CostCenter::orderBy('cc_type_code')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $sheet1 = $doc->setActiveSheetIndex(0);
+
+            $oro=1;
+            foreach($cost_center_list as $coa){
+                if(substr($coa->cc_type_code, 0, 2) == '05' || substr($coa->cc_type_code, 0, 2) == '03' ){
+                    $oro++;
+                   
+                    $sheet1->setCellValue('A'.$oro, $coa->cc_name_code);
+                    $sheet1->setCellValue('B'.$oro, $coa->cc_name);
+                    
+                    $style = array(
+                        'alignment' => array(
+                            'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                        )
+                    );
+                    $sheet1->getStyle('A'.$oro.'')->applyFromArray($style);
+                }
+                
+                
+               
+            }
+            
+            
+        })->setFilename('Import Template for Bid of Quotations '.date('m-d-Y'))->download('xlsx');
+    }
+    public function GetBudgetTemplateExcel(Request $request){
+        
+        $cc_no=$request->cc;
+        $cost_center_list= CostCenter::where('cc_no',$cc_no)->orderBy('cc_type_code')->get();
+        Excel::load('extra/edit_excel/budget.xlsx', function($doc) use($request) {
+            $cc_no=$request->cc;
+            $cost_center_list= CostCenter::where('cc_no',$cc_no)->orderBy('cc_type_code')->get();
+            $COA= ChartofAccount::where('coa_active','1')->get();
+            $sheet1 = $doc->setActiveSheetIndex(0);
+
+            $sheet1->setCellValue('A1', $cost_center_list[0]->cc_no);
+            $sheet1->setCellValue('B1', $cost_center_list[0]->cc_name);
+            $sheet1->setCellValue('C1', date('Y'));
+            $oro=4;
+            foreach($COA as $coa){
+                $oro++;
+                $sheet1->setCellValue('A'.$oro, $coa->coa_code);
+                //$sheet1->mergeCells('A'.$oro.':B'.$oro.'');
+                $sheet1->setCellValue('B'.$oro, $coa->coa_name);
+                
+                    $styleArray = array(
+                        'borders' => array(
+                            'allborders' => array(
+                                'style' => \PHPExcel_Style_Border::BORDER_THIN
+                            )
+                        )
+                    );
+                $sheet1->getStyle('A'.$oro.':N'.$oro.'')->applyFromArray($styleArray);
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                    )
+                );
+                
+                $sheet1->getStyle('A'.$oro)->applyFromArray($style);
+                $style = array(
+                    'alignment' => array(
+                        'horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
+                    )
+                );
+            
+                //$sheet1->getStyle('B'.$oro)->applyFromArray($style);
+
+                $sheet1->getStyle('C'.$oro.':N'.$oro.'')->getFill()
+                ->setFillType(\PHPExcel_Style_Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FFDEEAF6');
+                
+            }
+            $letter="C";
+            do {
+                $sheet1->setCellValue(
+                    $letter.'4',
+                    '=SUM('.$letter.'5:'.$letter.''.$oro.')'
+                );
+            $letter++;
+            } while( $letter<"O");
+            
+            
+        })->setFilename('Import Template for '.$cost_center_list[0]->cc_name.' Monthly Budget '.date('m-d-Y'))->download('xlsx');
+    }
+    public function UploadMassBIDQuot(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $rowcount=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $spreadsheet = Excel::load($path);
+        $worksheet = $spreadsheet->getActiveSheet();
+        foreach ($worksheet->getRowIterator() as $row) {
+            $rowcount++;
+            $countloop++;
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(FALSE);
+            if($rowcount>1){
+                $cc_code="";
+                $bid_amount="";
+                $csasd=1;
+                foreach ($cellIterator as $cell) {
+                    if($csasd==1){
+                        $cc_code=$cell->getCalculatedValue();
+                        
+                    }
+                    if($csasd==3){
+                        $bid_amount=$cell->getCalculatedValue();
+                    }
+                    $csasd++;
+                }
+                if($cc_code!=""){
+                    if($bid_amount!=""){
+                        $ccc= CostCenter::where('cc_name_code',$cc_code)->first();
+                        if(!empty($ccc)){
+                            
+                            if(is_numeric($bid_amount) && $bid_amount > 0){
+								$extra.=$cc_code." || ";
+                                $cost_center=$ccc->cc_no;
+                                $budget=$bid_amount;
+                                $Budget= Budgets::where([
+                                    ['budget_cost_center', '=', $cost_center],
+                                    ['budget_type', '=', "Bid of Quotation"]
+                                ])->first();
+                                if(empty($Budget)){
+                                    $Budget = new Budgets;
+                                }
+                                $Budget->budget_no=Budgets::count() + 1;
+                                $Budget->budget_cost_center=$cost_center;
+                                $Budget->budget_month=$budget;
+                                $Budget->budget_type="Bid of Quotation";
+                                if($Budget->save()){
+                                    $Cost_Center=CostCenter::find($cost_center);
+                                    $Cost_Center->cc_use_quotation='Yes';
+                                    $Cost_Center->save();
+                                    $saved_count++;
+                                }else{
+                                    $error_count++;
+                                    $Log.="Error Saving Data on row ".$rowcount." from file.\n";   
+                                } 
+                            }else{
+                                $error_count++;
+                                $Log.="Amount not a proper number on row ".$rowcount." from file.\n"; 
+                            } 
+                        }else{
+                            $error_count++;
+                            $Log.="Cost Center Code Not Found on row ".$rowcount." from file.\n"; 
+                        }
+                    }else{
+                        $error_count++;
+                        $Log.="Empty Amount on row ".$rowcount." from file.\n";
+                    }
+                }else{
+                    $error_count++;
+                    $Log.="Empty Cost Center Code on row ".$rowcount." from file.\n";
+                }
+            }
+            
+            
+        }
+        
+
+
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
+    }
+    public function UploadMassBill(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        })->get();
+
+        $JournalGroup = array();
+        foreach($data as $row){
+            array_push($JournalGroup, $row->bill_group_no); 
+        }
+        $GRROUP=array_unique($JournalGroup);
+        
+        foreach($GRROUP as $unique){
+        
+            $credit=0;
+            $countloop=0;
+            $debit=0;
+            $rowcount=1;
+            $valid=0;
+            $individualcount=0;
+            foreach($data as $row){
+                $rowcount++;
+                $countloop++;
+                $extra.=$row;
+                if($row->bill_group_no==$unique){
+                    $extra.=$unique." , ";
+                    $individualcount++;
+                    if($row->bill_group_no!=""){
+                        if($row->bill_date!=""){
+                            if($row->due_date!=""){
+                                if($row->cost_center!=""){
+                                    if($row->client!=""){
+                                        if($row->rf!=""){
+                                            if($row->po!=""){
+                                                if($row->ci!=""){
+                                                    if($row->item_account!=""){
+                                                        if($row->credit_account!=""){
+                                                            $sss=explode(" -- ",$row->client);
+                                                            //check if bill no is unique
+                                                            $invoice_no_field=$unique;
+                                                            $invoice_count=ExpenseTransaction::where([
+                                                                ['et_type','=','Bill'],
+                                                                ['et_no','=',$invoice_no_field]
+                                                            ])->count();
+                                                            $invoice_count_new=ExpenseTransactionNew::where([
+                                                                ['et_type','=','Bill'],
+                                                                ['et_no','=',$invoice_no_field]
+                                                            ])->count();
+                                                            $bill_no_count=$invoice_count+$invoice_count_new;
+                                                            if($bill_no_count<1){
+                                                                $valid_coa=0;
+                                                                $valid_coa_C=0;
+                                                                $valid_cc=0;
+                                                                foreach($data as $row){
+                                                                    if($unique==$row->bill_group_no){
+                                                                        $account=$row->item_account;
+                                                                        $account2=$row->credit_account;
+                                                                        $COA= ChartofAccount::where('coa_code',$account)->first();
+                                                                        if(empty($COA)){
+                                                                            
+                                                                            $valid_coa=0;
+                                                                            break;
+                                                                        }else{
+                                                                            $valid_coa=1;
+                                                                        }
+                                                                        $COA= ChartofAccount::where('coa_code',$account2)->first();
+                                                                        if(empty($COA)){
+                                                                            
+                                                                            $valid_coa_C=0;
+                                                                            break;
+                                                                        }else{
+                                                                            $valid_coa_C=1;
+                                                                        }
+                                                                        $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                                                                        if(empty($COA)){
+                                                                            $valid_cc=0; 
+                                                                            break;
+                                                                        }else{
+                                                                            $valid_cc=1;     
+                                                                        }
+                                                                    }
+                                                                }
+                                                                if($valid_cc==1 && $valid_coa==1 && $valid_coa_C==1){
+                                                                    $extra.=$row->bill_group_no;
+                                                                    $expense_transaction = new ExpenseTransactionNew;
+                                                                    $expense_transaction->et_no = $row->bill_group_no;
+                                                                    $expense_transaction->et_customer = $sss[0];
+                                                                    $expense_transaction->et_bill_no =$row->bill_group_no;
+                                                                    $expense_transaction->et_date = $row->bill_date;
+                                                                    $expense_transaction->et_due_date = $row->due_date;
+                                                                    $expense_transaction->et_shipping_address = $row->rf;
+                                                                    $expense_transaction->et_shipping_to = $row->po;
+                                                                    $expense_transaction->et_shipping_via = $row->ci;
+
+                                                                    $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                                                                    $expense_transaction->et_debit_account=!empty($COA)? $COA->cc_no : '';
+                                                                    $COA= ChartofAccount::where('coa_code',$row->credit_account)->first();
+                                                                    $expense_transaction->et_credit_account=!empty($COA)? $COA->id : '';
+                                                                    $expense_transaction->et_type = 'Bill';
+                                                                    $expense_transaction->save();
+
+                                                                    $customer = new Customers;
+                                                                    $customer = Customers::find($sss[0]);
+                                                                    $totalamount=0;
+                                                                    foreach($data as $row2){
+                                                                        if($row2->bill_group_no==$unique){
+                                                                            if($row2->bill_group_no!=""){
+                                                                                if($row2->total_amount!=""){
+                                                                                    $et_account = new EtAccountDetailNew;
+                                                                                    $et_account->et_ad_no = $row->bill_group_no;
+                                                                                    $et_account->et_ad_product = $row->item_account;
+                                                                                    $et_account->et_ad_desc = $row->item_description;
+                                                                                    $et_account->et_ad_total = $row->total_amount;
+                                                                                    $et_account->et_ad_rate = 1;
+                                                                                    $et_account->et_ad_qty = $row->bill_group_no;
+                                                                                    $et_account->et_ad_type = "Bill";
+                                                                                    $totalamount+=$row->total_amount;
+                                                                                    $et_account->save();
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    $expense_transaction =ExpenseTransactionNew::find($row->bill_group_no);
+                                                                    $expense_transaction->bill_balance=$totalamount;
+                                                                    $expense_transaction->save();
+                                                                    $saved_count++;
+                                                                }else{
+                                                                    if($valid_cc==0){
+                                                                        $valid=1; 
+                                                                        //empty first name
+                                                                        $error_count++;
+                                                                        $Log.="Cost Center on row ".$rowcount." from file.\n";  
+                                                                    }
+                                                                    if($valid_coa==0){
+                                                                        $valid=1; 
+                                                                        //empty first name
+                                                                        $error_count++;
+                                                                        $Log.="Item Account on row ".$rowcount." from file.\n";  
+                                                                    }
+                                                                    if($valid_coa_C==0){
+                                                                        $valid=1; 
+                                                                        //empty first name
+                                                                        $error_count++;
+                                                                        $Log.="Credit Account on row ".$rowcount." from file.\n";  
+                                                                    }
+                                                                }
+                                                            }else{
+                                                                $valid=1; 
+                                                                //empty first name
+                                                                $error_count++;
+                                                                $Log.="Duplicate Bill No. on row ".$rowcount." from file.\n";  
+                                                            }
+                                                        }else{
+                                                            $valid=1; 
+                                                            //empty first name
+                                                            $error_count++;
+                                                            $Log.="Empty Credit Account on row ".$rowcount." from file.\n";  
+                                                        }
+                                                    }else{
+                                                        $valid=1; 
+                                                        //empty first name
+                                                        $error_count++;
+                                                        $Log.="Empty Item Account on row ".$rowcount." from file.\n";  
+                                                    }
+                                                }else{
+                                                    $valid=1; 
+                                                    //empty first name
+                                                    $error_count++;
+                                                    $Log.="Empty CI on row ".$rowcount." from file.\n";  
+                                                }
+                                            }else{
+                                                $valid=1; 
+                                                //empty first name
+                                                $error_count++;
+                                                $Log.="Empty PO on row ".$rowcount." from file.\n";  
+                                            }
+                                        }else{
+                                            $valid=1; 
+                                            //empty first name
+                                            $error_count++;
+                                            $Log.="Empty RF on row ".$rowcount." from file.\n";  
+                                        }
+                                    }else{
+                                        $valid=1; 
+                                        //empty first name
+                                        $error_count++;
+                                        $Log.="Empty Client on row ".$rowcount." from file.\n";  
+                                    }
+                                }else{
+                                    $valid=1; 
+                                    //empty first name
+                                    $error_count++;
+                                    $Log.="Empty Cost Center on row ".$rowcount." from file.\n";  
+                                }
+                            }else{
+                                $valid=1; 
+                                //empty first name
+                                $error_count++;
+                                $Log.="Empty Due Date on row ".$rowcount." from file.\n";  
+                            }
+                        }else{
+                            $valid=1; 
+                            //empty first name
+                            $error_count++;
+                            $Log.="Empty Bill Date on row ".$rowcount." from file.\n";  
+                        }
+                    }else{
+                        $valid=1; 
+                        //empty first name
+                        $error_count++;
+                        $Log.="Empty Bill Group No on row ".$rowcount." from file.\n";  
+                    }
+                break;
+                }
+            }
+        }
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
+    }
+    public function UploadMassInvoice(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        })->get();
+
+        $JournalGroup = array();
+        foreach($data as $row){
+            array_push($JournalGroup, $row->invoice_group_no); 
+        }
+        $GRROUP=array_unique($JournalGroup);
+        foreach($GRROUP as $unique){
+            $credit=0;
+            $countloop=0;
+            $debit=0;
+            $rowcount=1;
+            $valid=0;
+            $individualcount=0;
+            foreach($data as $row){
+                $rowcount++;
+                $countloop++;
+                $extra.=$row;
+                if($row->invoice_group_no==$unique){
+                    $individualcount++;
+                    if($row->invoice_group_no!=""){
+                        if($row->location!=""){
+                            if($row->invoice_type!=""){
+                                if($row->invoice_date!=""){
+                                    
+                                        
+                                            if($row->client!=""){
+                                                
+                                                        if($row->total_amount!=""){
+                                                            if($row->debit_account!=""){
+                                                                if($row->credit_account!=""){
+                                                                    $sss=explode(" -- ",$row->client);
+		
+		
+                                                                    $numbering = Numbering::first();
+                                                                    $sales_number=0;
+                                                                    if($row->location=="Main"){
+                                                                        if($row->invoice_type=="Sales Invoice"){
+                                                                            $sales_number = SalesTransaction::where([
+                                                                                ['st_type','=','Invoice'],
+                                                                                ['st_location', '=', 'Main'],
+                                                                                ['st_invoice_type','=','Sales Invoice']
+                                                                            ])->count() + $numbering->sales_exp_start_no;
+                                                                        }else if($row->invoice_type=="Bill Invoice"){
+                                                                            $sales_number = SalesTransaction::where([
+                                                                                ['st_type','=','Invoice'],
+                                                                                ['st_location', '=', 'Main'],
+                                                                                ['st_invoice_type','=','Bill Invoice']
+                                                                            ])->count() + $numbering->numbering_bill_invoice_main;
+                                                                        }
+                                                                    }else if($row->location=="Branch"){
+                                                                        if($row->invoice_type=="Sales Invoice"){
+                                                                            $sales_number = SalesTransaction::where([
+                                                                                ['st_type','=','Invoice'],
+                                                                                ['st_location', '=', 'Branch'],
+                                                                                ['st_invoice_type','=','Sales Invoice']
+                                                                            ])->count() + $numbering->numbering_sales_invoice_branch;
+                                                                        }else if($row->invoice_type=="Bill Invoice"){
+                                                                            $sales_number = SalesTransaction::where([
+                                                                                ['st_type','=','Invoice'],
+                                                                                ['st_location', '=', 'Branch'],
+                                                                                ['st_invoice_type','=','Bill Invoice']
+                                                                            ])->count() + $numbering->numbering_bill_invoice_branch;
+                                                                        }
+                                                                    }
+                                                                    $sales_transaction = new SalesTransaction;
+                                                                    $sales_transaction->st_no = $sales_number;
+                                                                    $sales_transaction->st_date = $row->invoice_date;
+                                                                    $sales_transaction->st_type = "Invoice";
+                                                                    $sales_transaction->st_term = "";
+                                                                    $sales_transaction->st_customer_id = $sss[0];
+                                                                    $sales_transaction->st_due_date = $row->due_date;
+                                                                    $sales_transaction->st_invoice_job_order = $row->job_order;
+                                                                    $sales_transaction->st_invoice_work_no = $row->work_no;
+                                                                    $sales_transaction->st_status = 'Open';
+                                                                    $sales_transaction->st_action = '';
+                                                                    $sales_transaction->st_email = "";
+                                                                    $sales_transaction->st_send_later = "";
+                                                                    $sales_transaction->st_bill_address = "";
+                                                                    $sales_transaction->st_note ="";
+                                                                    $sales_transaction->st_memo = "";
+                                                                    $sales_transaction->st_i_attachment = "";
+                                                                    $cre=explode(" -- ",$row->debit_account);
+                                                                    $account=$cre[0];
+                                                                    $sales_transaction->st_debit_account = $account;
+                                                                    $cre=explode(" -- ",$row->credit_account);
+                                                                    $account=$cre[0];
+                                                                    $sales_transaction->st_credit_account = $account;
+                                                                    
+                                                                    $total_balance=0;
+                                                                    $customer = new Customers;
+                                                                    $customer = Customers::find($sss[0]);
+                                                                    foreach($data as $row2){
+                                                                        if($row2->invoice_group_no==$unique){
+                                                                            if($row2->invoice_group_no!=""){
+                                                                                if($row2->location!=""){
+                                                                                    if($row2->invoice_type!=""){
+                                                                                        if($row2->invoice_date!=""){
+                                                                                           
+                                                                                               
+                                                                                                    if($row2->client!=""){
+                                                                                                        
+                                                                                                            
+                                                                                                                if($row2->total_amount!=""){
+                                                                                                                    $st_invoice = new StInvoice;
+                                                                                                                    $st_invoice->st_i_no = $sales_number;
+                                                                                                                    $st_invoice->st_i_product = $row2->productservice;
+                                                                                                                    $st_invoice->st_i_desc = $row2->description;
+                                                                                                                    $st_invoice->st_i_qty = 1;
+                                                                                                                    $st_invoice->st_i_rate = $row2->total_amount;
+                                                                                                                    $st_invoice->st_i_total = $row2->total_amount;
+                                                                                                                    $st_invoice->st_p_method = null;
+                                                                                                                    $st_invoice->st_p_reference_no = null;
+                                                                                                                    $st_invoice->st_p_deposit_to = null;
+                                                                                                                    $st_invoice->st_p_location = $row2->location;
+                                                                                                                    $st_invoice->st_p_invoice_type = $row2->invoice_type;
+                                                                                                                    $st_invoice->st_p_debit = $row2->debit_account;
+                                                                                                                    $st_invoice->st_p_credit = $row2->credit_account;
+                                                                                                                    
+                                                                                                                    $wwe=explode(" -- ",$row2->cost_center);
+                                                                                                                    // $COA= CostCenter::where('cc_name_code',$wwe[0])->get();
+                                                                                                                    $CostCenter=$wwe[0];
+                                                                                                                    $JournalVoucherCount=count(JournalEntry::where([
+                                                                                                                        ['journal_type','=','Journal Voucher']
+                                                                                                                    ])->groupBy('je_no')->get())+1;
+                                                                                                                    $current_year=date('y');
+                                                                                                                
+                                                                                                                    $journalvoucher_no_series="";
+                                                                                                                    if($JournalVoucherCount<10){
+                                                                                                                        $journalvoucher_no_series="000".$JournalVoucherCount;
+                                                                                                                    }
+                                                                                                                    else if($JournalVoucherCount>9 && $JournalVoucherCount<100){
+                                                                                                                        $journalvoucher_no_series="00".$JournalVoucherCount;
+                                                                                                                    }else if($JournalVoucherCount>99 && $JournalVoucherCount<1000){
+                                                                                                                        $journalvoucher_no_series="0".$JournalVoucherCount;
+                                                                                                                    }
+                                                                                                                    
+                                                                                                                    $journalvoucher_no="JV".$current_year.$journalvoucher_no_series;
+                                                                                                                    $journal_series_no="";
+                                                                                                                    
+                                                                                                                    $journal_series_no=$journalvoucher_no;
+                                                    
+                                                                                                                    $st_invoice->st_p_cost_center=$CostCenter;
+                                                                                                                    $st_invoice->save();
+                                                                                                                    $total_balance+=$row2->total_amount;
+
+
+                                                                                                                    $JDate=$row->invoice_date;
+                                                                                                                    $JNo=$sales_number;
+                                                                                                                    $JMemo="";
+                                                                                                                    $cre=explode(" -- ",$row2->credit_account);
+                                                                                                                    $account=$cre[0];
+                                                                                                                    $debit= "";
+                                                                                                                    $credit= $row2->total_amount;
+                                                                                                                    $description=$row2->description;
+                                                                                                                    $name= $customer->display_name;
+                                                
+                                                                                                                    $journal_entries = new  JournalEntry;
+                                                                                                                    $jounal = DB::table('journal_entries')         ->select('je_no')         ->groupBy('je_no')         ->get();         
+                                                                                                                    $journal_entries_count=count($jounal)+1;
+                                                                                                                    $journal_entries->je_id = "1";
+                                                                                                                    $journal_entries->other_no=$JNo;
+                                                                                                                    $journal_entries->je_no=$journal_entries_count;
+                                                                                                                    $journal_entries->je_account=$account;
+                                                                                                                    $journal_entries->je_debit=$debit;
+                                                                                                                    $journal_entries->je_credit=$credit;
+                                                                                                                    $journal_entries->je_desc=$description;
+                                                                                                                    $journal_entries->je_name=$name;
+                                                                                                                    $journal_entries->je_memo=$JMemo;
+                                                                                                                    $journal_entries->created_at=$JDate;
+                                                                                                                    $journal_entries->je_attachment=$JDate;
+                                                                                                                    $journal_entries->je_attachment=$JDate;
+                                                                                                                    $journal_entries->je_transaction_type="Invoice";
+                                                                                                                    $journal_entries->je_invoice_location_and_type=$row->location." ".$row->invoice_type;
+                                                                                                                    
+                                                                                                                    $journal_entries->je_cost_center=$CostCenter;
+                                                                                                                    $journal_entries->journal_type="Journal Voucher";
+		                                                                                                            $journal_entries->je_series_no=$journal_series_no;
+                                                                                                                    $journal_entries->save();
+                                                
+                                                                                                                    $JDate=$row->invoice_date;
+                                                                                                                    $JNo=$sales_number;
+                                                                                                                    $JMemo="";
+                                                                                                                    $cre=explode(" -- ",$row2->debit_account);
+                                                                                                                    $account=$cre[0];
+                                                                                                                    $debit= $row2->total_amount;
+                                                                                                                    $credit= "";
+                                                                                                                    $description=$row2->description;
+                                                                                                                    $name= $customer->display_name;
+                                                                                                                    
+                                                
+                                                                                                                    $journal_entries = new  JournalEntry;
+                                                                                                                    
+                                                                                                                    $journal_entries->je_id = "2";
+                                                                                                                    $journal_entries->other_no=$JNo;
+                                                                                                                    $journal_entries->je_no=$journal_entries_count;
+                                                                                                                    $journal_entries->je_account=$account;
+                                                                                                                    $journal_entries->je_debit=$debit;
+                                                                                                                    $journal_entries->je_credit=$credit;
+                                                                                                                    $journal_entries->je_desc=$description;
+                                                                                                                    $journal_entries->je_name=$name;
+                                                                                                                    $journal_entries->je_memo=$JMemo;
+                                                                                                                    $journal_entries->created_at=$JDate;
+                                                                                                                    $journal_entries->je_attachment=$JDate;
+                                                                                                                    $journal_entries->je_attachment=$JDate;
+                                                                                                                    $journal_entries->je_transaction_type="Invoice";
+                                                                                                                    $journal_entries->je_invoice_location_and_type=$row->location." ".$row->invoice_type;
+                                                                                                                    
+                                                                                                                    $journal_entries->je_cost_center=$CostCenter;
+                                                                                                                    $journal_entries->journal_type="Journal Voucher";
+		                                                                                                            $journal_entries->je_series_no=$journal_series_no;
+                                                                                                                    $journal_entries->save();
+                                                                                                                }
+                                                                                                            
+                                                                                                        
+                                                                                                    }
+                                                                                            
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        
+                                                                    }
+
+                                                                    
+                                                                    $sales_transaction->st_balance = $total_balance;
+        
+                                                                    $sales_transaction->st_location = $row->location;
+                                                                    $sales_transaction->st_invoice_type = $row->invoice_type;
+                                                                    $sales_transaction->save();
+        
+                                                                    
+                                                                    // $customer->opening_balance = $customer->opening_balance+$total_balance;
+                                                                    // $customer->save();
+                                                                    $saved_count++;
+                                                                }else{
+                                                                    $valid=1; 
+                                                                    //empty first name
+                                                                    //$error_count++;
+                                                                    $Log.="Empty Credit Account on row ".$rowcount." from file.\n";  
+                                                                }
+                                                            }else{
+                                                                $valid=1; 
+                                                                //empty first name
+                                                                //$error_count++;
+                                                                $Log.="Empty Debit on row ".$rowcount." from file.\n";  
+                                                            }
+                                                            
+                                                        }else{
+                                                            $valid=1; 
+                                                            //empty first name
+                                                            //$error_count++;
+                                                            $Log.="Empty Total Amount on row ".$rowcount." from file.\n";  
+                                                        }
+                                                    
+                                            }else{
+                                                $valid=1; 
+                                                //empty first name
+                                                //$error_count++;
+                                                $Log.="Empty Client on row ".$rowcount." from file.\n";  
+                                            }
+                                        
+                                    
+                                }else{
+                                    $valid=1; 
+                                    //empty first name
+                                    //$error_count++;
+                                    $Log.="Empty Invoice Date on row ".$rowcount." from file.\n";  
+                                }
+                            }else{
+                                $valid=1; 
+                                //empty first name
+                                //$error_count++;
+                                $Log.="Empty Invoice Type on row ".$rowcount." from file.\n";  
+                            }
+                        }else{
+                            $valid=1; 
+                            //empty first name
+                            //$error_count++;
+                            $Log.="Empty Location on row ".$rowcount." from file.\n";  
+                        }
+                       
+                    }else{
+                        $valid=1; 
+                        //empty first name
+                        //$error_count++;
+                        $Log.="Empty Invoice Group No on row ".$rowcount." from file.\n";  
+                    }
+                    break;
+                }
+            }
+
+        }
+
+
+
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
+
+    }
+    public function UploadMassBudget(Request $request){
+        $file = $request->file('theFile');
+        $ids = $request->input('ids');
+        // $reader = Excel::createReader('Xlsx');
+        // $reader->setReadDataOnly(TRUE);
+        $path = $file->getRealPath();
+        $spreadsheet = Excel::load($path);
+        $saved_count=0;
+        $countloop=0;
+        $error_count=0;
+        $Log="";
+        // $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        // })->get();
+        $worksheet = $spreadsheet->getActiveSheet();
+        $extra="";
+        //$extra.='<table class="table table-bordered">' . PHP_EOL;
+        $rows=1;
+        $valid="";
+        $cc_no="";
+        $year="";
+        foreach ($worksheet->getRowIterator() as $row) {
+            
+            if($rows==1){
+                $cellIterator = $row->getCellIterator();
+                $cellIterator->setIterateOnlyExistingCells(FALSE);
+                $csasd=1;
+               foreach ($cellIterator as $cell) {
+                    if($csasd==1){
+                        if($cell->getCalculatedValue()!=$ids){
+                            $valid="0";
+                        }
+                    }else{
+                        break;
+                    }
+                    $csasd++;
+                } 
+            }
+            if($valid=="0"){
+                $Log.="Incorrect Cost Center Template";
+                break;
+            }else {
+                
+            }
+            
+            if($rows==1){
+                $cellIterator = $row->getCellIterator();
+                $cellIterator->setIterateOnlyExistingCells(FALSE);
+                $csasd=1;
+                foreach ($cellIterator as $cell) {
+                    if($csasd==1){
+                        $cc_no=$cell->getCalculatedValue();
+                    }
+                    else if($csasd==3){
+                        $year=$cell->getCalculatedValue();   
+                    }
+                    $csasd++;
+                }
+
+            }
+            //$extra.="CC_NO : ".$cc_no." YEAR : ".$year;
+            if($rows>4){
+                $countloop++;
+                $cellIterator = $row->getCellIterator();
+                $cellIterator->setIterateOnlyExistingCells(FALSE);
+                $chart_of_accounts="";
+                $cccc=1;
+                $cellssss=$cccc;
+                $m1=0;
+                $m2=0;
+                $m3=0;
+                $m4=0;
+                $m5=0;
+                $m6=0;
+                $m7=0;
+                $m8=0;
+                $m9=0;
+                $m10=0;
+                $m11=0;
+                $m12=0;
+                foreach ($cellIterator as $cell) {
+                    if($cccc==1){
+                        $chart_of_accounts=$cell->getCalculatedValue();
+                    }
+                    if($cccc==3){
+                        
+                        $m1=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==4){
+                        
+                        $m2=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==5){
+                        
+                        $m3=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==6){
+                        
+                        $m4=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==7){
+                        
+                        $m5=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==8){
+                        
+                        $m6=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==9){
+                        
+                        $m7=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==10){
+                        
+                        $m8=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==11){
+                        
+                        $m9=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==12){
+                        
+                        $m10=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==13){
+                        
+                        $m11=$cell->getCalculatedValue();
+                        
+                    }
+                    if($cccc==14){
+                        
+                        $m12=$cell->getCalculatedValue();
+                        
+                    }
+                
+                    $cccc++;
+                //$cell->getCalculatedValue();
+                }
+                $Budget= Budgets::where([
+                    ['budget_year', '=', $year],
+                    ['budget_cost_center', '=', $cc_no],
+                    ['budget_chart_of_accounts', '=', $chart_of_accounts],
+                    
+                ])->first();
+                $budget_is="";
+                if(!empty($Budget)){
+                   
+                        $budget_is=$Budget->budget_no;
                     
                 }else{
-                    return $sales_transaction->remark;
+                    $Budget= New Budgets;
+                    $budget_is=Budgets::count() + 1; 
+                }
+                $Budget->budget_no=$budget_is;
+                $Budget->budget_year=$year;
+                $Budget->budget_cost_center=$cc_no;
+                $Budget->budget_chart_of_accounts=$chart_of_accounts;
+                $Budget->budget_type="Monthly";
+                $Budget->m1=$m1;
+                $Budget->m2=$m2;
+                $Budget->m3=$m3;
+                $Budget->m4=$m4;
+                $Budget->m5=$m5;
+                $Budget->m6=$m6;
+                $Budget->m7=$m7;
+                $Budget->m8=$m8;
+                $Budget->m9=$m9;
+                $Budget->m10=$m10;
+                $Budget->m11=$m11;
+                $Budget->m12=$m12;
+                if($Budget->save()){
+                    $costcenter=CostCenter::find($cc_no);
+                    $costcenter->cc_use_quotation="";
+                    $saved_count++;
+                }else{
+                    $error_count++;
+                    $Log.="Failed to Save Data in Row ".$rows-4;
+                }
+                
+            }
+            $rows++;
+        }
+
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
+        
+    }
+    public function UploadMassCC(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        })->get();
+        $rowcount=0;
+        foreach($data as $row){
+            $rowcount++;
+            $countloop++;
+        //    $Log.=$row;
+        //    break;
+            //{"cost_center_type_code":1123,"cost_center_type":"Admin","cost_center_category":"Admin"}
+            if($row->cost_center_type_code!=""){
+                if($row->cost_center_type!=""){
+                    if($row->cost_center_category_code!=""){
+                        if($row->cost_center_category!=""){
+                            
+                            
+                            $CostCenter=CostCenter::where('cc_name_code',$row->cost_center_category_code)->count();
+                            if($CostCenter<1){
+                                $costcenter= New CostCenter;
+                                $costcenter_no=CostCenter::count() + 1;
+                                $costcenter->cc_no=$costcenter_no ; 
+                                $costcenter->cc_type_code=$row->cost_center_type_code; 
+                                $costcenter->cc_type=$row->cost_center_type; 
+                                $costcenter->cc_name_code=$row->cost_center_category_code; 
+                                $costcenter->cc_name=$row->cost_center_category;
+                                $costcenter->cc_use_quotation=$row->use_bid_of_quotation;
+                                if($costcenter->save()){
+
+                                    $saved_count++;
+                                
+                                }else{
+                                    $error_count++;
+                                    $Log.="Error Saving Data on row ".$rowcount." from file.\n";
+                                }
+                                
+                            }else{
+                                $error_count++;
+                                $Log.="Duplicate Cost Center Category Code on row ".$rowcount." from file.\n";
+                            }
+                        }else{
+                            $error_count++;
+                            $Log.="Empty Cost Center Category on row ".$rowcount." from file.\n";
+                        }
+                    }else{
+                        $error_count++;
+                        $Log.="Empty Cost Center Category Code on row ".$rowcount." from file.\n";
+                    }
+                }else{
+                    $error_count++;
+                    $Log.="Empty Cost Center Type on row ".$rowcount." from file.\n";
                 }
             }else{
-                return "";
+                $error_count++;
+                $Log.="Empty Cost Center Type Code on row ".$rowcount." from file.\n";  
             }
-            
-            
-        })
-        ->editColumn('st_due_date', function ($data) {
-            if($data->st_due_date == NULL){
-                return "N/A";
+        }
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log
+        );
+        return json_encode($data);
+    }
+    public function UploadMassCOA(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::load($path, function($reader) {
+        })->get();
+        $code_coa=0;
+        $rowcount=0;
+        $fforeaccount=0;
+        foreach($data as $row){
+            $rowcount++;
+            $countloop++;
+            if($row->account_code!=""){
+                $Chart=ChartofAccount::where('coa_code',$row->account_code)->count();
+                if($Chart<1){
+                    if($row->line_item!=""){
+                        if($row->account_title!=""){
+                            if($row->normal_balance!=""){
+                                if($row->account_classification!=""){
+                                    // if($row->cost_center_code!=""){
+                                        $cc_code_check=CostCenter::where([
+                                            ['cc_name_code','=',$row->cost_center_code]
+                                        ])->get();
+                                        $cc_id="";
+                                            
+                                        if(count($cc_code_check)>0){
+                                            foreach($cc_code_check as $ccs){
+                                                $cc_id=$ccs->cc_no;
+                                            }
+                                        }else{
+                                            //not existing Cost Center Code
+                                            // $error_count++;
+                                            // $Log.="Cost Center Code not Existing on row ".$rowcount." from file.\n";
+                                        }
+                                            
+                                            $Chart= New ChartofAccount;
+                                            $Chart->id= ChartofAccount::count() + 1;
+                                            $cccdcd=ChartofAccount::count() + 1;
+                                            $Chart->coa_account_type=$row->line_item;
+                                            $Chart->coa_detail_type=$row->account_title;
+                                            $Chart->coa_name=preg_replace( "/\r|\n/", "", $row->account_title );
+                                            $Chart->coa_sub_account=$row->sub_account;
+                                            $Chart->coa_description=$row->account_description;
+                                            $Chart->coa_code=$row->account_code;
+                                            $Chart->normal_balance=$row->normal_balance;
+                                            $Chart->coa_cc=$cc_id;
+                                            $Chart->coa_balance=0;
+                                            $Chart->coa_beginning_balance=0;
+                                            $Chart->coa_is_sub_acc="0";
+                                            $Chart->coa_active="1";
+                                            $Chart->coa_title=$row->account_classification;
+                                            if($Chart->save()){
+                                                $AuditLog= new AuditLog;
+                                                $AuditLogcount=AuditLog::count()+1;
+                                                $userid = Auth::user()->id;
+                                                $username = Auth::user()->name;
+                                                $eventlog="Added Account No. ".$cccdcd;
+                                                $AuditLog->log_id=$AuditLogcount;
+                                                $AuditLog->log_user_id=$username;
+                                                $AuditLog->log_event=$eventlog;
+                                                $AuditLog->log_name="";
+                                                $AuditLog->log_transaction_date="";
+                                                $AuditLog->log_amount="";
+                                                $AuditLog->save();
+                                                $saved_count++;
+                                            }else{
+                                                $error_count++;
+                                                $Log.="Error Saving Data on row ".$rowcount." from file.\n";  
+                                            }
+                                        
+                                    // }else{
+                                    //     //empty Cost Center Code
+                                    //     $error_count++;
+                                    //     $Log.="Empty Cost Center Code on row ".$rowcount." from file.\n";
+                                    // }
+                                    
+                                }else{
+                                    //empty Account Title
+                                    $error_count++;
+                                    $Log.="Empty Account Classification on row ".$rowcount." from file.\n";
+                                }
+                            }else{
+                                //empty Normal Balance
+                                 $error_count++;
+                                $Log.="Empty Normal Balance on row ".$rowcount." from file.\n";
+                            }
+                        }else{
+                            //empty adetail type
+                            $error_count++;
+                            $Log.="Empty Account Title on row ".$rowcount." from file.\n";
+                        }
+                    }else{
+                        //empty Line Item
+                        $error_count++;
+                        $Log.="Empty Line Item on row ".$rowcount." from file.\n";
+                    }
+                   
+                }else{
+                    //duplicate code
+                    $error_count++;
+				    $Log.="Duplicate Account Code on row ".$rowcount." from file.\n";
+                }
             }else{
-                return date('m-d-Y',strtotime($data->st_due_date));
+                //empty code
+                $error_count++;
+				$Log.="Empty Account Code on row ".$rowcount." from file.\n";
             }
-        })
-        ->editColumn('st_type', function ($data) {
-            if($data->st_type =="Invoice"){
-                return $data->st_location." ".$data->st_invoice_type;
-            }else{
-                return $data->st_type;
-            }
-        })
+            $fforeaccount++;
+        }
+
+
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log
+        );
+        return json_encode($data);
+    }
+    public function UploadMassCustomer(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::load($path, function($reader) {
+        })->get();
+         $customers= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        $rowcount=0;
+        foreach($data as $row){
+            $rowcount++;
+            $countloop++;
+            
+                    $duplicate=0;
+                    foreach($customers as $cus){
+                        if($cus->display_name==$row->display_name_as && $row->display_name_as!=""){
+                            $duplicate=1;
+                        }
+                    }
+
+                    if($duplicate==0){
+                        $extra.=$row->display_name_as."\n";
+                        $customer = new Customers;
+                        $customer->customer_id = Customers::count() + 1;
+                        $customer->f_name = $row->first_name;
+                        $customer->l_name = $row->last_name;
+                        $customer->email = $row->email;
+                        $customer->company = $row->company_name;
+                        $customer->phone = $row->phone;
+                        $customer->mobile = $row->mobile;
+                        $customer->fax = $row->fax;
+                        $customer->display_name = $row->display_name_as;
+                        $customer->other = $row->other;
+                        $customer->website = $row->website;
+                        $customer->street = $row->street;
+                        $customer->city = $row->citytown;
+                        $customer->state = $row->stateprovince;
+                        $customer->postal_code = $row->postal_code;
+                        $customer->country = $row->country;
+                        $customer->payment_method = $row->payment_method;
+                        $customer->terms = $row->terms;
+                        $customer->opening_balance = $row->opening_balance;
+                        $customer->as_of_date = date('Y-m-d');
+                        $customer->account_no = $row->account_no;
+                        $customer->business_id_no = $row->business_id_no;
+                        $customer->tin_no=$row->tin_no;
+                        if($row->withholding_tax==""){
+                            $customer->withhold_tax="12";
+                        }else{
+                            $customer->withhold_tax=$row->withholding_tax;
+                        }
+                        
+                        $customer->business_style=$row->business_style;
+                        $customer->account_type="Customer";
+                        $customer->save();
+
+                        $AuditLog= new AuditLog;
+                            $AuditLogcount=AuditLog::count()+1;
+                            $userid = Auth::user()->id;
+                            $username = Auth::user()->name;
+                            $eventlog="Added Customer";
+                            $AuditLog->log_id=$AuditLogcount;
+                            $AuditLog->log_user_id=$username;
+                            $AuditLog->log_event=$eventlog;
+                            $AuditLog->log_name="";
+                            $AuditLog->log_transaction_date="";
+                            $AuditLog->log_amount="";
+                            $AuditLog->save();
+                            $saved_count++;
+                    }else{
+                        //empty last name
+                         $error_count++;
+                         $Log.="Duplicate Display Name on row ".$rowcount." from file.\n";  
+                    }
+
+            
+
+        }
+
         
-        ->make(true);
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
     }
+    public function UploadMassSupplier(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::load($path, function($reader) {
+        })->get();
+        $supplier= Customers::where([
+            ['supplier_active','=','1']
+        ])->get();
+        $rowcount=0;
+        $extra=$data;
+        
+        foreach($data as $row){
+            $rowcount++;
+            $countloop++;
+            $extra.=$row;
+            
+                $duplicate=0;
+                foreach($supplier as $cus){
+                    if($cus->display_name==$row->display_name_as && $row->display_name_as!=""){
+                        $duplicate=1;
+                    }
+                }
 
-    public function refresh_sales_table_invoice(){
-        $sales_transaction = SalesTransaction::where('st_type', 'Invoice');
+                if($duplicate==0){
+                        $customer = new Customers;
+                        $customer->customer_id = Customers::count() + 1;
+                        $customer->f_name = $row->first_name;
+                        $customer->l_name = $row->last_name;
+                        $customer->email = $row->email;
+                        $customer->company = $row->company_name;
+                        $customer->phone = $row->phone;
+                        $customer->mobile = $row->mobile;
+                        $customer->fax = $row->fax;
+                        $customer->display_name = $row->display_name_as;
+                        $customer->other = $row->other;
+                        $customer->website = $row->website;
+                        $customer->street = $row->street;
+                        $customer->city = $row->citytown;
+                        $customer->state = $row->stateprovince;
+                        $customer->postal_code = $row->postal_code;
+                        $customer->country = $row->country;
+                        $customer->payment_method = $row->billing_ratehr;
+                        $customer->terms = $row->terms;
+                        $customer->opening_balance = $row->opening_balance;
+                        $customer->account_no = $row->account_no;
+                        $customer->business_id_no = $row->business_id_no;
+                        $customer->tin_no=$row->tin_no;
+                        $customer->tax_type=$row->tax;
+                        $customer->vat_value=$row->vat_value;
+                        $customer->business_style=$row->business_style;
+                        $customer->account_type="Supplier";
+                        $customer->supplier_active="1";
+                        $customer->save();
+                        $AuditLog= new AuditLog;
+                        $AuditLogcount=AuditLog::count()+1;
+                        $userid = Auth::user()->id;
+                        $username = Auth::user()->name;
+                        $eventlog="Added Supplier";
+                        $AuditLog->log_id=$AuditLogcount;
+                        $AuditLog->log_user_id=$username;
+                        $AuditLog->log_event=$eventlog;
+                        $AuditLog->log_name="";
+                        $AuditLog->log_transaction_date="";
+                        $AuditLog->log_amount="";
+                        $AuditLog->save();
+                        $saved_count++;
+                }else{
+                    //empty last name
+                     $error_count++;
+                     $Log.="Duplicate Display Name on row ".$rowcount." from file.\n";  
+                }
+            
+            
+            
+                    
 
-        return \DataTables::of($sales_transaction)
-        ->addColumn('checkbox', function($sales_transaction){
-            return '<span> try </span>';
-        })
-        ->addColumn('action', function($sales_transaction){
-            if($sales_transaction->st_status == "Open" || $sales_transaction->st_status == "Partially paid"){
-                return '<span class="table-add mb-3 mr-2"><a class="btn btn-link text-info receive_payment" id="'.$sales_transaction->st_no.'" href="#" data-toggle="modal" data-target="#salesreceiptmodal"><i aria-hidden="true">Receive Payment</i></a></span>';
-            }else{
-                return '<span class="table-add mb-3 mr-2">Received</span>';
-            }                
-        })
-        ->addColumn('customer_name', function($sales_transaction){
-            return $sales_transaction->customer_info->display_name;             
-        })
-        ->addColumn('customer_balance', function($sales_transaction){
-            return 'PHP '.number_format($sales_transaction->st_balance, 2);             
-        })
-        ->addColumn('transaction_total', function($sales_transaction){
-            return 'PHP '.number_format($sales_transaction->invoice_info->sum('st_i_total'), 2);             
-        })
-        ->editColumn('st_due_date', function ($data) {
-            if($data->st_due_date == NULL){
-                return "N/A";
-            }else{
-                return $data->st_due_date;
+
+        }
+
+        
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
+    }
+    public function UploadMassJournalEntry(Request $request){
+        $error_count=0;
+        $saved_count=0;
+        $countloop=0;
+        $extra="";
+        $Log="";
+        $file = $request->file('theFile');
+        $path = $file->getRealPath();
+        $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        })->get();
+       
+        $JournalGroup = array();
+        foreach($data as $row){
+			$extra.=$row;
+            array_push($JournalGroup, $row->journal_no); 
+        }
+        $GRROUP=array_unique($JournalGroup);
+        
+        foreach($GRROUP as $unique){
+            $credit=0;
+            $countloop=0;
+            $debit=0;
+            $rowcount=1;
+            $valid=0;
+            $individualjournalnocount=0;
+            foreach($data as $row){
+                $rowcount++;
+                $countloop++;
+                
+                if($unique==$row->journal_no){
+                    $individualjournalnocount++;
+                    if($row->journal_type!=""){
+                        if($row->journal_type=="Cheque Voucher" || $row->journal_type=="Journal Voucher"){
+                            if($row->journal_date!=""){
+                                
+                                    if($row->journal_no!=""){
+                                        if($row->account!=""){
+                                            if($row->debit=="" && $row->credit==""){
+                                                $valid=1; 
+                                                //empty first name
+                                                //$error_count++;
+                                                $Log.="Empty Credit/Debit on row ".$rowcount." from file.\n"; 
+                                            }else{
+                                                if($row->debit!=""){
+                                                    $debit+=$row->debit;
+                                                }else{
+                                                    $credit+=$row->credit;
+                                                }
+                                                
+                                            }
+                                        }else{
+                                            $valid=1; 
+                                            //empty first name
+                                            //$error_count++;
+                                            $Log.="Empty Account on row ".$rowcount." from file.\n"; 
+                                        }
+                                    }else{
+                                        $valid=1; 
+                                        //empty first name
+                                        //$error_count++;
+                                        $Log.="Empty Journal No on row ".$rowcount." from file.\n"; 
+                                     }
+                                
+                            }else{
+                                $valid=1; 
+                                //empty first name
+                                //$error_count++;
+                                $Log.="Empty Journal Date on row ".$rowcount." from file.\n"; 
+                            }
+                        }else{
+                            $valid=1; 
+                            //empty first name
+                            //$error_count++;
+                            $Log.="Invalid Journal Type on row ".$rowcount." from file.\n"; 
+                        }
+                    }else{
+                        $valid=1; 
+                        //empty first name
+                        //$error_count++;
+                        $Log.="Empty Journal Type on row ".$rowcount." from file.\n"; 
+                    }
+                    
+                }
+
             }
-        })
-        ->make(true);
-    }
-    public function refresh_sales_table_invoice2(){
-        $sales_transaction = SalesTransaction::where('st_type', 'Invoice');
+            if($valid==0){
+                
+                if(number_format($credit,2)==number_format($debit,2)){
+                    $entrycount=0;
+                    $jounal = DB::table('journal_entries')
+                            ->select('je_no')
+                            ->groupBy('je_no')
+                            ->get();
+                    $jounalcount=count($jounal)+1;
+                    $jounal3 = count(JournalEntry::where([
+                                ['journal_type','=','Cheque Voucher']
+                            ])->groupBy('je_no')->get())+1;
+                    $jounalcountchqeue=$jounal3;
+                    $chequevoucher_no_series="";
+                    if($jounalcountchqeue<10){
+                        $chequevoucher_no_series="000".$jounalcountchqeue;
+                    }
+                    else if($jounalcountchqeue>9 && $jounalcountchqeue<100){
+                        $chequevoucher_no_series="00".$jounalcountchqeue;
+                    }else if($jounalcountchqeue>99 && $jounalcountchqeue<1000){
+                        $chequevoucher_no_series="0".$jounalcountchqeue;
+                    }
+                    $jounal2 = count(JournalEntry::where([
+                        ['journal_type','=','Journal Voucher']
+                    ])->groupBy('je_no')->get())+1;
+                    $jounalcountjournal=$jounal2;
+                    $journalvoucher_no_series="";
+                    if($jounalcountjournal<10){
+                        $journalvoucher_no_series="000".$jounalcountjournal;
+                    }
+                    else if($jounalcountjournal>9 && $jounalcountjournal<100){
+                        $journalvoucher_no_series="00".$jounalcountjournal;
+                    }else if($jounalcountjournal>99 && $jounalcountjournal<1000){
+                        $journalvoucher_no_series="0".$jounalcountjournal;
+                    }
+                    $Valid_je_no = []; 
+                    $valid_coa=0;
+                    $valid_cc=1;
+                    foreach($data as $row){
+                        if($unique==$row->journal_no){
+                            $account=$row->account;
+                            $COA= ChartofAccount::where('coa_code',$account)->first();
+                            if(empty($COA)){
+                                
+                                $valid_coa=0;
+                                break;
+                            }else{
+                                $valid_coa=1;
+                            }
+                            // $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                            // if(empty($COA)){
+                            //     $valid_cc=0; 
+                            //     break;
+                            // }else{
+                            //     $valid_cc=1;     
+                            // }
+                            
+                                
 
-        return \DataTables::of($sales_transaction)
-        ->addColumn('checkbox', function($sales_transaction){
-            return '<span> try </span>';
-        })
-        ->addColumn('action', function($sales_transaction){
-            if($sales_transaction->st_status == "Open" || $sales_transaction->st_status == "Partially paid"){
-                return '<span class="table-add mb-3 mr-2"><a class="text-info receive_payment" id="'.$sales_transaction->st_no.'" href="#" data-toggle="modal" data-target="#receivepaymentmodal"><i aria-hidden="true">Receive Payment</i></a>
-                <br>
-                <select>
-                <option></option>
-                <option>Print</option>
-                <option>Send</option>
-                <option>View/Edit</option>
-                <option>Send Reminder</option>
-                <option>Print packing slip</option>
-                <option>Copy</option>
-                <option>Delete</option>
-                <option>Void</option>
-                </select></span>';
+                        }
+                    }
+                    if($valid_cc==1 && $valid_coa==1){
+                        foreach($data as $row){
+                            if($unique==$row->journal_no){
+                                $entrycount++;
+                                $no=$entrycount;
+                                $JDate=$row->journal_date;
+                                
+                                $JNo=$jounalcount;
+                                $account=$row->account;
+                                $COA= ChartofAccount::where('coa_code',$account)->first();
+                                $account=$COA->id;
+                                $debit= $row->debit;
+                                $credit= $row->credit;
+                                $description= $row->description;
+                                $name=$row->name;
+                                $journal_type=$row->journal_type;
+                                $cheque_no=$row->cheque_no;
+                                $reference=$row->reference;
+                                $date_deposited=$row->date_deposited;
+                                
+                                $type="Journal Entry";
+                                $CostCenter="";
+                                
+                                // $COA= CostCenter::where('cc_name_code',$row->cost_center)->first();
+                                
+                                // $CostCenter=$COA->cc_no;
+                                
+                                $journal_entries = new  JournalEntry;
+                                $journal_entries->je_id = $no;//duplicate if multiple entry *for fix*
+                                $journal_entries->je_no=$JNo;
+                                $journal_entries->je_account=$account;
+                                $journal_entries->je_debit=$debit;
+                                $journal_entries->je_credit=$credit;
+                                $journal_entries->je_desc=$description;
+                                $journal_entries->je_name=$name;
+                                $journal_entries->created_at=$JDate;
+                                $journal_entries->je_attachment=$JDate;
+                                $journal_entries->other_no="Journal-".$JNo;
+                                $journal_entries->cheque_no=$cheque_no;
+                                $journal_entries->ref_no=$reference;
+                                $journal_entries->journal_type=$journal_type;
+                                if($journal_type=="Cheque Voucher"){
+                                    $journal_entries->je_series_no="CV".date('y').$chequevoucher_no_series;
+                                }else{
+                                    $journal_entries->je_series_no="JV".date('y').$journalvoucher_no_series;
+                                }
+                                $journal_entries->je_transaction_type=$type;
+                                $journal_entries->je_cost_center=$CostCenter;
+                                $journal_entries->date_deposited=$date_deposited;
+                                        
+                                $journal_entries->save();
+                                $AuditLog= new AuditLog;
+                                $AuditLogcount=AuditLog::count()+1;
+                                $userid = Auth::user()->id;
+                                $username = Auth::user()->name;
+                                $eventlog="Imported Journal Entry No. ".$JNo;
+                                $AuditLog->log_id=$AuditLogcount;
+                                $AuditLog->log_user_id=$username;
+                                $AuditLog->log_event=$eventlog;
+                                $AuditLog->log_name="";
+                                $AuditLog->log_transaction_date="";
+                                $AuditLog->log_amount="";
+                                $AuditLog->save();
+                                $saved_count++;
+                            }
+                        }
+                        
+                    }else{
+                        if($valid_cc==0){
+                            $error_count+=$individualjournalnocount;
+                            $Log.="Cost Center Code Not Found Not Found in Journal No ".$unique.".\n";
+                        }
+                        if($valid_coa==0){
+                            $error_count+=$individualjournalnocount;
+                            $Log.="Account Code Not Found in Journal No ".$unique.".\n"; 
+                        }
+                    }
+                }else{
+                    //empty first name
+                    $error_count+=$individualjournalnocount;
+                    $Log.="Debit and Credit not Equal in Journal No ".$unique." (".number_format($debit,2)."==".number_format($credit,2).")".".\n"; 
+                }
+
             }else{
-                return '<span class="table-add mb-3 mr-2">Received<br>
-                <select>
-                <option></option>
-                <option>Print</option>
-                <option>Send</option>
-                <option>View/Edit</option>
-                <option>Send Reminder</option>
-                <option>Print packing slip</option>
-                <option>Copy</option>
-                <option>Delete</option>
-                <option>Void</option>
-                </select></span>';
-            }                
-        })
-        ->addColumn('customer_name', function($sales_transaction){
-            return $sales_transaction->customer_info->display_name;             
-        })
-        ->addColumn('customer_balance', function($sales_transaction){
-            return 'PHP '.number_format($sales_transaction->st_balance, 2);             
-        })
-        ->addColumn('transaction_total', function($sales_transaction){
-            return 'PHP '.number_format($sales_transaction->invoice_info->sum('st_i_total'), 2);             
-        })
-        ->editColumn('st_due_date', function ($data) {
-            if($data->st_due_date == NULL){
-                return "N/A";
-            }else{
-                return $data->st_due_date;
+                $error_count+=$individualjournalnocount;
+                $Log.="Skipped Journal No ".$unique.".\n"; 
             }
-        })
-        ->make(true);
+
+
+            
+        }
+
+
+
+        $data = array(
+            'Success' => $saved_count,
+            'Total' => $countloop,
+            'Skiped'  => $error_count,
+            'Error_Log' =>$Log,
+            'Extra'=>$extra
+        );
+        return json_encode($data);
     }
-    public function get_all_transactions(Request $request){
-        $sales_transaction = SalesTransaction::where([
-            ['st_no', $request->id],
-            ['st_type', 'Estimate']
+    public function delete_cost_center(Request $request){
+        //$CostCenter=CostCenter::find($request->cost_id);
+
+        $costcenterEdit=CostCenterEdit::find($request->cost_id);
+        $costcenter=CostCenter::find($request->cost_id);
+       
+        if(empty($costcenterEdit)){
+            $costcenterEdit =new CostCenterEdit;
+        }
+            $costcenterEdit->cc_no=$request->cost_id;
+            $costcenterEdit->cc_type_code=$costcenter->cc_type_code; 
+            $costcenterEdit->cc_type=$costcenter->cc_type; 
+            $costcenterEdit->cc_name_code=$costcenter->cc_name_code; 
+            $costcenterEdit->cc_name=$costcenter->cc_name;
+            $costcenterEdit->cc_status='0';  
+            $costcenterEdit->edit_status="0";  
+            if($costcenterEdit->save()){
+               
+            }
+        
+        
+        return redirect('/accounting')->with('success','Cost Center Deleted');
+    }
+    public function GetCodeCostCenter(Request $request){
+        $type_code=$request->type_code;
+        $CostCenter= CostCenter::where('cc_name_code',$type_code)->get();
+        if(count($CostCenter)<1){
+            return 0;
+        }
+        else if(count($CostCenter)>0){
+            return 1;
+        }
+
+    }
+    public function GetCodeCostCenterEdit(Request $request){
+        $type_code=$request->type_code;
+        $no=$request->no;
+        $CostCenter= CostCenter::where([
+            ['cc_name_code', '=', $type_code],
+            ['cc_no', '!=', $no],
+            
+        ])->get();
+        if(count($CostCenter)<1){
+            return 0;
+        }
+        else if(count($CostCenter)>0){
+            return 1;
+        }
+
+    }
+    
+    public function SetCostCenter(Request $request){
+        $cc_type_code=$request->Type_Code;
+        $cc_name_code=$request->Category_Code;
+        $cc_type=$request->CostCenterTypeName;
+        $cc_name=$request->CostCenterCategory;
+
+        $costcenter= New CostCenter;
+        $cc_no=CostCenter::count() + 1;
+        $costcenter->cc_no=$cc_no;
+        $costcenter->cc_type_code=$cc_type_code; 
+        $costcenter->cc_type=$cc_type; 
+        $costcenter->cc_name_code=$cc_name_code; 
+        $costcenter->cc_name=$cc_name;
+        
+        $costcenter->save();
+        
+        
+
+        
+    }
+    public function update_bid_of_quotation(Request $request){
+        $cost_center=$request->cost_center;
+        $budget=$request->budget;
+        $Budget= BudgetsEdit::where([
+            ['budget_cost_center', '=', $cost_center],
+            ['budget_type', '=', "Bid of Quotation"]
+        ])->first();
+        if(empty($Budget)){
+            $Budget = new BudgetsEdit;
+        }
+        $Budget->budget_no=BudgetsEdit::count() + 1;
+        $Budget->budget_cost_center=$cost_center;
+        $Budget->budget_month=$budget;
+        $Budget->budget_type="Bid of Quotation";
+        $Budget->edit_status="0";
+        if($Budget->save()){
+            $CostCenter= CostCenter::where([
+                ['cc_no', '=', $cost_center]
             ])->first();
-        return $sales_transaction;
-    }
-
-    public function get_all_estimates(Request $request){
-        $st_estimates = StEstimate::where('st_e_no', $request->id)->get();
-        $products = ProductsAndServices::all();
-
-        foreach($st_estimates as $estimate){
-            foreach($products as $product){
-                if($estimate->st_e_product == $product->product_id){
-                    $estimate['st_e_product_name'] = $product->product_name;
-                }
-            }
-         }
-
-        return $st_estimates;
-    }
-
-    public function get_all_delayed_charge(Request $request){
-        $st_delayed_charge = StDelayedCharge::where('st_dc_no', $request->id)->get();
-        $products = ProductsAndServices::all();
-
-        foreach($st_delayed_charge as $delayed_charge){
-            foreach($products as $product){
-                if($delayed_charge->st_dc_product == $product->product_id){
-                    $delayed_charge['st_dc_product_name'] = $product->product_name;
-                }
-            }
-         }
-
-        return $st_delayed_charge;
-    }
-
-    public function get_all_delayed_credit(Request $request){
-        $st_delayed_credit = StDelayedCredit::where('st_dcredit_no', $request->id)->get();
-        $products = ProductsAndServices::all();
-
-        foreach($st_delayed_credit as $delayed_credit){
-            foreach($products as $product){
-                if($delayed_credit->st_dcredit_product == $product->product_id){
-                    $delayed_credit['st_dcredit_product_name'] = $product->product_name;
-                }
-            }
-         }
-
-        return $st_delayed_credit;
-    }
-    public function save_product(Request $request){
-        $user= new ProductsAndServices;
-        $user->product_id=ProductsAndServices::count() + 1;
-        $user->product_name=$request->prod_name;
-        $user->product_sku=$request->prod_sku;
-        $user->product_type=$request->prod_category;
-        $user->product_sales_description=$request->prod_desc;
-        $user->product_sales_price=$request->prod_price;
-        $user->product_cost=$request->prod_cost;
-        $user->product_qty=$request->prod_qty;
-        $user->product_reorder_point=$request->prod_reorder_point;
-        $user->save();
-        return redirect()->back();
-    }
-    public function update_product(Request $request){
-        
-        $user=ProductAndServicesEdit::find($request->prod_id);
-        if(empty($user)){
-            $user = new ProductAndServicesEdit;
+            $AuditLog= new AuditLog;
+            $AuditLogcount=AuditLog::count()+1;
+            $userid = Auth::user()->id;
+            $username = Auth::user()->name;
+            $eventlog="Edited Bid of Quotation of.".$CostCenter->cc_name."(".$CostCenter->cc_name_code.")";
+            $AuditLog->log_id=$AuditLogcount;
+            $AuditLog->log_user_id=$username;
+            $AuditLog->log_event=$eventlog;
+            $AuditLog->log_name="";
+            $AuditLog->log_transaction_date="";
+            $AuditLog->log_amount="";
+            $AuditLog->save();
+            // $Cost_Center=CostCenter::find($cost_center);
+            // $Cost_Center->cc_use_quotation='Yes';
+            // $Cost_Center->save();
         }
-        $user->product_id=$request->prod_id;
-        $user->product_name=$request->prod_name;
-        $user->product_sku=$request->prod_sku;
-        $user->product_type=$request->prod_category;
-        $user->product_sales_description=$request->prod_desc;
-        $user->product_sales_price=$request->prod_price;
-        $user->product_cost=$request->prod_cost;
-        $user->product_qty=$request->prod_qty;
-        $user->product_reorder_point=$request->prod_reorder_point;
-        $user->edit_status="0";
-        $user->save();
-        return redirect()->back();
+        //$costcenter->cc_use_quotation=$request->UseBidEdit;
+
     }
-    public function update_prod_edit(Request $request){
-        $useredit=ProductAndServicesEdit::find($request->id);
-        $user=ProductsAndServices::find($request->id);
-        if(!empty($user)){
-            $user->product_name=$useredit->product_name;
-            $user->product_sku=$useredit->product_sku;
-            $user->product_type=$useredit->product_type;
-            $user->product_sales_description=$useredit->product_sales_description;
-            $user->product_sales_price=$useredit->product_sales_price;
-            $user->product_cost=$useredit->product_cost;
-            $user->product_qty=$useredit->product_qty;
-            $user->product_reorder_point=$useredit->product_reorder_point;
-            if($user->save()){
-                $useredit->edit_status="1";
-                $useredit->save();
-            }
+    public function delete_pending_bid_request(Request $request){
+        $budget_edit_no=$request->id;
+        $BudgetEdits= BudgetsEdit::where([
+            ['budget_no', '=', $budget_edit_no]
+        ])->first();
+        $cost_center=$BudgetEdits->budget_cost_center;
+        $BudgetEdits->edit_status="1";
+        if($BudgetEdits->save()){
+            $AuditLog= new AuditLog;
+            $AuditLogcount=AuditLog::count()+1;
+            $CostCenter= CostCenter::where([
+                ['cc_no', '=', $cost_center]
+            ])->first();
+            $userid = Auth::user()->id;
+            $username = Auth::user()->name;
+            $eventlog="Denied Pending Bid of Quotation Edit Request of.".$CostCenter->cc_name."(".$CostCenter->cc_name_code.")";
+            $AuditLog->log_id=$AuditLogcount;
+            $AuditLog->log_user_id=$username;
+            $AuditLog->log_event=$eventlog;
+            $AuditLog->log_name="";
+            $AuditLog->log_transaction_date="";
+            $AuditLog->log_amount="";
+            $AuditLog->save();
         }
         
-
     }
-    public function delete_prod_edit(Request $request){
-        $useredit=ProductAndServicesEdit::find($request->id);
-        $useredit->edit_status="1";
-        $useredit->save();
+    public function approve_pending_bid_request(Request $request){
+        $budget_edit_no=$request->id;
+        $BudgetEdits= BudgetsEdit::where([
+            ['budget_no', '=', $budget_edit_no]
+        ])->first();
+        $cost_center=$BudgetEdits->budget_cost_center;
+        $budget=$BudgetEdits->budget_month;
+        $Budget= Budgets::where([
+            ['budget_cost_center', '=', $cost_center],
+            ['budget_type', '=', "Bid of Quotation"]
+        ])->first();
+        if(empty($Budget)){
+            $Budget = new Budgets;
+        }
+        $Budget->budget_month=$budget;
+        if($Budget->save()){
+            $Cost_Center=CostCenter::find($cost_center);
+            $Cost_Center->cc_use_quotation='Yes';
+            $Cost_Center->save();
+            $BudgetEdits->edit_status="1";
+            $BudgetEdits->save();
+            $CostCenter= CostCenter::where([
+                ['cc_no', '=', $cost_center]
+            ])->first();
+            $AuditLog= new AuditLog;
+            $AuditLogcount=AuditLog::count()+1;
+            $userid = Auth::user()->id;
+            $username = Auth::user()->name;
+            $eventlog="Approved Pending Bid of Quotation Edit Request of.".$CostCenter->cc_name."(".$CostCenter->cc_name_code.")";
+            $AuditLog->log_id=$AuditLogcount;
+            $AuditLog->log_user_id=$username;
+            $AuditLog->log_event=$eventlog;
+            $AuditLog->log_name="";
+            $AuditLog->log_transaction_date="";
+            $AuditLog->log_amount="";
+            $AuditLog->save();
+            
+        } 
+    }
+    public function update_CC_edit(Request $request){
+        $costcenterEdit=CostCenterEdit::find($request->id);
+        $costcenter=CostCenter::find($request->id);
+       
+        if(!empty($costcenter)){
+            $costcenter->cc_type_code=$costcenterEdit->cc_type_code; 
+            $costcenter->cc_type=$costcenterEdit->cc_type; 
+            $costcenter->cc_name_code=$costcenterEdit->cc_name_code; 
+            $costcenter->cc_name=$costcenterEdit->cc_name;
+            $costcenter->cc_status=$costcenterEdit->cc_status;  
+            if($costcenter->save()){
+                $costcenterEdit->edit_status="1";
+                $costcenterEdit->save();
+            }
+        }
+        
+        
+    }
+    public function delete_CC_edit(Request $request){
+        $costcenterEdit=CostCenterEdit::find($request->id);
+        $costcenterEdit->edit_status="1";
+        $costcenterEdit->save();
+    }
+    
+    public function SetCostCenterEdit(Request $request){
+        $cc_type_code=$request->Type_Code;
+        $cc_name_code=$request->Category_Code;
+        $cc_type=$request->CostCenterTypeName;
+        $cc_name=$request->CostCenterCategory;
+        $cc_no=$request->no;
+
+        $costcenter=CostCenterEdit::find($cc_no);
+        if(empty($costcenter)){
+            $costcenter = new CostCenterEdit;
+        }
+        $costcenter->cc_no=$cc_no; 
+        $costcenter->cc_type_code=$cc_type_code; 
+        $costcenter->cc_type=$cc_type; 
+        $costcenter->cc_name_code=$cc_name_code; 
+        $costcenter->cc_name=$cc_name;
+        $costcenter->edit_status="0";
+        $costcenter->save();
+
+
     }
 }

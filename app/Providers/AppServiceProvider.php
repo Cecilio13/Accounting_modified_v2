@@ -47,6 +47,7 @@ use App\Clients;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\UserClientAccess;
+use App\PendingCancelEntry;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -107,7 +108,9 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('UserAccessList', UserAccess::where('user_id',Auth::user()->id)->get());
                 $view->with('UserAccessCostCenterList', UserCostCenterAccess::where('use_id',Auth::user()->id)->get());
                 $view->with('UserClientAccessList', UserClientAccess::where('user_id',Auth::user()->id)->get());
-                
+                view()->share('PendingCancelEntry', PendingCancelEntry::where([
+                    ['entry_status','=','1']
+                ])->get());
                 $view->with('CC_Types_list', CC_Type::orderBy('cc_code', 'asc')->groupBy('cc_type')->get());
                 // //View::share('user', \Auth::user());
                 if(Auth::user()->clnt_db_id!=""){
