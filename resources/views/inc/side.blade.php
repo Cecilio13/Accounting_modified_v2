@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-sm navbar-default">
 
-    <div class="navbar-header" >
+    <div class="navbar-header">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-menu" aria-controls="main-menu" aria-expanded="false" aria-label="Toggle navigation">
             <i class="fa fa-bars"></i>
         </button>
@@ -131,9 +131,14 @@
     @endforeach
     @endif
     @endif
+    @foreach ($PendingCancelEntry as $item)
+    <?php
+    $pendingapprovals++;
+    ?>  
+    @endforeach
     <div id="main-menu" class="main-menu collapse navbar-collapse">
         <ul class="nav navbar-nav">
-            <li class="active" onmouseover="document.getElementById('hoverrable_navbar').style.display='table-caption';" onmouseout="document.getElementById('hoverrable_navbar').style.display='none';"><a href="dashboard" > <i class="menu-icon fas fa-tachometer-alt"></i>Dashboard </a></li>
+            <li class="active"><a href="dashboard" > <i class="menu-icon fas fa-tachometer-alt"></i>Dashboard </a></li>
                 <h3 class="menu-title" style="margin-bottom:10px;">Menu</h3><!-- /.menu-title -->
                 <li><a href="banking" style="display:none;"> <i class="menu-icon fas fa-wallet width30"></i>Banking</a></li>
                 @if(count($UserAccessList)>0)
@@ -222,6 +227,7 @@
                     <li><a style="padding:2px 0px 2px 0px;display:none" href="cheque" data-toggle="modal" data-target="#chequemodal"><i class="menu-icon fa fa-th-large "></i> Cheque</a></li>
                     @if(count($UserAccessList)>0)
                     @if ($UserAccessList[0]->bill=="1")
+                    
                     <li><a style="padding:2px 0px 2px 0px;" href="#" data-toggle="modal" data-target="#import_bill_modal"><i class="menu-icon fas fa-money-bill"></i> Import Bill</a></li>
                     <li><a style="padding:2px 0px 2px 0px;" href="bill" data-toggle="modal" data-target="#billmodal"><i class="menu-icon fas fa-money-bill"></i> Bill</a></li>
                     @endif
